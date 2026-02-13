@@ -24,11 +24,14 @@ class Authentication(private val plugin: FirebasePlugin) {
 	private lateinit var activity: android.app.Activity
 	private val auth: FirebaseAuth = Firebase.auth
 	private lateinit var googleSignInClient: GoogleSignInClient
+	private var isLinkingAnonymous = false
 
 	fun authSignals(): MutableSet<SignalInfo> {
 		val signals: MutableSet<SignalInfo> = mutableSetOf()
 		signals.add(SignalInfo("auth_success", Dictionary::class.java))
 		signals.add(SignalInfo("auth_failure", String::class.java))
+		signals.add(SignalInfo("link_with_google_success", Dictionary::class.java))
+		signals.add(SignalInfo("link_with_google_failure", String::class.java))
 		signals.add(SignalInfo("sign_out_success", Boolean::class.javaObjectType))
 		signals.add(SignalInfo("password_reset_sent", Boolean::class.javaObjectType))
 		signals.add(SignalInfo("email_verification_sent", Boolean::class.javaObjectType))
@@ -61,15 +64,32 @@ class Authentication(private val plugin: FirebasePlugin) {
 			try {
 				val account = task.getResult(ApiException::class.java)!!
 				Log.d(TAG, "authWithGoogle:" + account.id)
-				authWithGoogle(account.idToken!!)
+				if (isLinkingAnonymous) {
+					isLinkingAnonymous = false
+					linkWithGoogle(account.idToken!!)
+				} else {
+					authWithGoogle(account.idToken!!)
+				}
 			} catch (e: ApiException) {
+				val wasLinking = isLinkingAnonymous
+				isLinkingAnonymous = false
 				Log.w(TAG, "Google sign in failed", e)
-				plugin.emitGodotSignal("auth_failure", e.message ?: "Unknown error")
+				if (wasLinking) {
+					plugin.emitGodotSignal("link_with_google_failure", e.message ?: "Unknown error")
+				} else {
+					plugin.emitGodotSignal("auth_failure", e.message ?: "Unknown error")
+				}
 			}
 		}
 	}
 
 	fun signInAnonymously() {
+		val currentUser = auth.currentUser
+		if (currentUser != null) {
+			Log.d(TAG, "User already signed in (uid=${currentUser.uid}, isAnonymous=${currentUser.isAnonymous}). Skipping anonymous sign-in.")
+			plugin.emitGodotSignal("auth_failure", "User is already signed in.")
+			return
+		}
 		auth.signInAnonymously()
 			.addOnSuccessListener {
 				val uid = it.user?.uid
@@ -146,6 +166,23 @@ class Authentication(private val plugin: FirebasePlugin) {
 		}
 	}
 
+	fun linkAnonymousWithGoogle() {
+		val currentUser = auth.currentUser
+		if (currentUser == null) {
+			Log.e(TAG, "No user signed in.")
+			plugin.emitGodotSignal("link_with_google_failure", "No user signed in.")
+			return
+		}
+		if (!currentUser.isAnonymous) {
+			Log.d(TAG, "Current user is not anonymous (uid=${currentUser.uid}). Cannot link.")
+			plugin.emitGodotSignal("link_with_google_failure", "Current user is not anonymous.")
+			return
+		}
+		Log.d(TAG, "Linking anonymous user (uid=${currentUser.uid}) with Google.")
+		isLinkingAnonymous = true
+		signInWithGoogle()
+	}
+
 	private fun authWithGoogle(idToken: String) {
 		val credential = GoogleAuthProvider.getCredential(idToken, null)
 		auth.signInWithCredential(credential)
@@ -160,6 +197,26 @@ class Authentication(private val plugin: FirebasePlugin) {
 			}
 	}
 
+	private fun linkWithGoogle(idToken: String) {
+		val currentUser = auth.currentUser
+		if (currentUser == null) {
+			Log.e(TAG, "No user signed in during linkWithGoogle.")
+			plugin.emitGodotSignal("link_with_google_failure", "No user signed in.")
+			return
+		}
+		val credential = GoogleAuthProvider.getCredential(idToken, null)
+		currentUser.linkWithCredential(credential)
+			.addOnSuccessListener { authResult ->
+				val uid = authResult.user?.uid
+				Log.d(TAG, "linkWithCredential:success -> $uid")
+				plugin.emitGodotSignal("link_with_google_success", getCurrentUser())
+			}
+			.addOnFailureListener { e ->
+				Log.w(TAG, "linkWithCredential:failure", e)
+				plugin.emitGodotSignal("link_with_google_failure", e.message ?: "Unknown error")
+			}
+	}
+
 	fun getCurrentUser(): Dictionary {
 		val user = auth.currentUser
 		val userData = Dictionary()
@@ -168,6 +225,7 @@ class Authentication(private val plugin: FirebasePlugin) {
 			userData["email"] = user.email
 			userData["photoUrl"] = user.photoUrl?.toString()
 			userData["emailVerified"] = user.isEmailVerified
+			userData["isAnonymous"] = user.isAnonymous
 			userData["uid"] = user.uid
 		} else {
 			userData["error"] = "No user signed in"

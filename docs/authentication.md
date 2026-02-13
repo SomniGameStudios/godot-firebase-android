@@ -16,6 +16,12 @@ The Firebase Authentication module in **GodotFirebaseAndroid** supports anonymou
 - `auth_failure(error_message: String)`
   Emitted when an authentication operation fails.
 
+- `link_with_google_success(current_user_data: Dictionary)`
+  Emitted when an anonymous user is successfully linked to a Google account.
+
+- `link_with_google_failure(error_message: String)`
+  Emitted when linking an anonymous user to a Google account fails.
+
 - `sign_out_success(success: bool)`
   Emitted after a sign-out operation. `true` indicates success.
 
@@ -105,11 +111,30 @@ Firebase.auth.sign_in_with_google()
 ---
 
 {: .text-green-100 }
+### link_anonymous_with_google()
+
+Links the currently signed-in anonymous user to a Google account, converting it to a permanent account. The anonymous user's UID and data are preserved. Must be called while an anonymous user is signed in.
+
+**Emits:** `link_with_google_success` or `link_with_google_failure`.
+
+```gdscript
+Firebase.auth.link_anonymous_with_google()
+```
+
+---
+
+{: .text-green-100 }
 ### get_current_user_data() -> Dictionary
 
-If no user is signed in, returns an dictionary with error.
+If no user is signed in, returns a dictionary with error.
 
-**Returns** a dictionary containing the currently signed-in user's data.
+**Returns** a dictionary containing the currently signed-in user's data:
+- `name` — Display name
+- `email` — Email address
+- `photoUrl` — Profile photo URL
+- `emailVerified` — Whether the email is verified
+- `isAnonymous` — Whether the user is anonymous
+- `uid` — User ID
 
 ```gdscript
 Firebase.auth.get_current_user_data()
