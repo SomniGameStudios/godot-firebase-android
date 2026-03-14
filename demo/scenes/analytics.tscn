@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://crpwtp2y06rh7"]
 
-[ext_resource type="Script" path="res://scenes/analytics.gd" id="1_analytics"]
+[ext_resource type="Script" uid="uid://dv8c30ior4w8h" path="res://scenes/analytics.gd" id="1_analytics"]
 [ext_resource type="Script" uid="uid://c1lwfy11opayr" path="res://scenes/scroll_container.gd" id="2_scroll"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
@@ -29,7 +29,7 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[node name="Analytics" type="Control"]
+[node name="Analytics" type="Control" unique_id=2105854314]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,7 +38,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_analytics")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1309976234]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,7 +47,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.133333, 0.133333, 0.133333, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1264128402]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -59,22 +59,22 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 40
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1150462527]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer" unique_id=1508340636]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 script = ExtResource("2_scroll")
 
-[node name="ButtonContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="ButtonContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer" unique_id=1513966250]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="log_event" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="log_event" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=385026694]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -84,7 +84,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Log Custom Event"
 
-[node name="log_purchase" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="log_purchase" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=1360381640]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -94,7 +94,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Log Purchase Event"
 
-[node name="set_user_id" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="set_user_id" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=1510039719]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -104,7 +104,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Set User ID"
 
-[node name="set_user_property" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="set_user_property" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=196146543]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -114,7 +114,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Set User Property"
 
-[node name="reset_analytics" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="reset_analytics" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=1190070255]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -124,7 +124,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Reset Analytics"
 
-[node name="toggle_collection" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+[node name="toggle_collection" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=2116133267]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -134,14 +134,14 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Toggle Collection"
 
-[node name="OutputPanel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
+[node name="OutputPanel" type="RichTextLabel" parent="MarginContainer/VBoxContainer" unique_id=1459866916]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 24
 scroll_following = true
 
-[node name="clear_output" type="Button" parent="MarginContainer/VBoxContainer"]
+[node name="clear_output" type="Button" parent="MarginContainer/VBoxContainer" unique_id=797506553]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24

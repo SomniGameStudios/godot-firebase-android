@@ -12,7 +12,9 @@ const DEPENDENCIES := [
 	"com.google.android.gms:play-services-auth:21.3.0",
 	"com.google.firebase:firebase-firestore:25.1.4",
 	"com.google.firebase:firebase-database:21.0.0",
-	"com.google.firebase:firebase-storage:21.0.1"
+	"com.google.firebase:firebase-storage:21.0.1",
+	"com.google.firebase:firebase-analytics:22.4.0",
+	"com.google.firebase:firebase-config:22.0.1"
 ]
 
 func _enter_tree():
