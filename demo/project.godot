@@ -14,7 +14,7 @@ config/name="Godot Firebase Android"
 config/tags=PackedStringArray("android", "demo", "plugin")
 run/main_scene="res://main.tscn"
 config/quit_on_go_back=false
-config/features=PackedStringArray("4.4", "GL Compatibility")
+config/features=PackedStringArray("4.6", "GL Compatibility")
 run/low_processor_mode=true
 config/icon="res://icon.svg"
 
