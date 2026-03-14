@@ -103,7 +103,29 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_h2yge")
 theme_override_styles/focus = SubResource("StyleBoxFlat_0xm2m")
 text = "Storage"
 
+[node name="RemoteConfig" type="Button" parent="MarginContainer/VBoxContainer" unique_id=2050538536]
+custom_minimum_size = Vector2(120, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+theme_override_styles/normal = SubResource("StyleBoxFlat_h2yge")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_1bvp3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_h2yge")
+theme_override_styles/focus = SubResource("StyleBoxFlat_0xm2m")
+text = "Remote Config"
+
+[node name="Analytics" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1510952869]
+custom_minimum_size = Vector2(120, 80)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+theme_override_styles/normal = SubResource("StyleBoxFlat_h2yge")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_1bvp3")
+theme_override_styles/hover = SubResource("StyleBoxFlat_h2yge")
+theme_override_styles/focus = SubResource("StyleBoxFlat_0xm2m")
+text = "Analytics"
+
 [connection signal="pressed" from="MarginContainer/VBoxContainer/Auth" to="." method="_on_auth_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/Firestore" to="." method="_on_firestore_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/RealtimeDB" to="." method="_on_realtime_db_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/Storage" to="." method="_on_storage_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/RemoteConfig" to="." method="_on_remote_config_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Analytics" to="." method="_on_analytics_pressed"]
