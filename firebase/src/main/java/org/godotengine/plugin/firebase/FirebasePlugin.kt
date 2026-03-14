@@ -17,6 +17,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	private val storage = CloudStorage(this)
 	private val realtimeDatabase = RealtimeDatabase(this)
 	private val analytics = Analytics(this)
+	private val remoteConfig = RemoteConfig(this)
 
 	override fun onMainCreate(activity: Activity?): View? {
 		activity?.let {
@@ -37,6 +38,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 		signals.addAll(realtimeDatabase.realtimeDbSignals())
 		signals.addAll(storage.storageSignals())
 		signals.addAll(analytics.analyticsSignals())
+		signals.addAll(remoteConfig.remoteConfigSignals())
 		return signals
 	}
 
@@ -177,4 +179,29 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun analyticsResetAnalyticsData() = analytics.resetAnalyticsData()
+
+	/**
+	 * Remote Config
+	 */
+
+	@UsedByGodot
+	fun remoteConfigInitialize() = remoteConfig.initialize()
+
+	@UsedByGodot
+	fun remoteConfigSetDefaults(defaults: Dictionary) = remoteConfig.setDefaults(defaults)
+
+	@UsedByGodot
+	fun remoteConfigFetchAndActivate() = remoteConfig.fetchAndActivate()
+
+	@UsedByGodot
+	fun remoteConfigGetString(key: String) = remoteConfig.getString(key)
+
+	@UsedByGodot
+	fun remoteConfigGetBoolean(key: String) = remoteConfig.getBoolean(key)
+
+	@UsedByGodot
+	fun remoteConfigGetLong(key: String) = remoteConfig.getLong(key)
+
+	@UsedByGodot
+	fun remoteConfigGetDouble(key: String) = remoteConfig.getDouble(key)
 }
