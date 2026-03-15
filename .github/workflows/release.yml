@@ -35,7 +35,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build plugin
-        run: ./gradlew build
+        run: ./gradlew assemble
 
       - name: Package addon zip
         run: |
