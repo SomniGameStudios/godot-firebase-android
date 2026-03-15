@@ -14,6 +14,8 @@ nav_order: 1
 - ✅ Cloud Firestore
 - ✅ Realtime Database
 - ✅ Cloud Storage
+- ✅ Firebase Analytics
+- ✅ Remote Config
 - 🔜 Cloud Messaging (Coming Soon)
 
 ## Getting Started

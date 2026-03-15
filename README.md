@@ -5,10 +5,12 @@ It supports Godot 4.2+
 
 ## Features
 
-- [x] Firebase Authentication (Anonymous, Email/Password, Google Sign-In)
-- [x] Cloud Firestore
+- [x] Firebase Authentication (Anonymous, Email/Password, Google Sign-In, reauthentication, profile management, auth state listener)
+- [x] Cloud Firestore (CRUD, queries, real-time listeners, WriteBatch, transactions, FieldValue helpers)
 - [x] Realtime Database
 - [x] Cloud Storage
+- [x] Firebase Analytics (event logging, user properties, consent management, session timeout)
+- [x] Remote Config (fetch/activate, typed getters, real-time updates, value source tracking)
 - [ ] Cloud Messaging (coming soon)
 
 ---

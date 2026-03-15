@@ -29,7 +29,7 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[node name="RemoteConfig" type="Control" unique_id=1524430444]
+[node name="RemoteConfig" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,7 +38,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_remote_config")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1692127995]
+[node name="ColorRect" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,7 +47,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.133333, 0.133333, 0.133333, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1253750724]
+[node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -59,30 +59,22 @@ theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 40
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1327663660]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer" unique_id=722961062]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 script = ExtResource("2_scroll")
 
-[node name="ButtonContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer" unique_id=496009489]
+[node name="ButtonContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
-[node name="KeyInput" type="LineEdit" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=1480010659]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 60)
-layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "welcome_message"
-placeholder_text = "Config key"
-
-[node name="initialize" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=967662447]
+[node name="initialize" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -92,7 +84,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Initialize"
 
-[node name="set_defaults" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=51309662]
+[node name="set_defaults" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -102,7 +94,47 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Set Defaults"
 
-[node name="fetch_and_activate" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=1228102455]
+[node name="set_dev_interval" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Set Dev Interval (0s)"
+
+[node name="set_fetch_timeout" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Set Fetch Timeout (10s)"
+
+[node name="fetch" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Fetch"
+
+[node name="activate" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Activate"
+
+[node name="fetch_and_activate" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -112,7 +144,15 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Fetch & Activate"
 
-[node name="get_value" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer" unique_id=35466420]
+[node name="KeyInput" type="LineEdit" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "welcome_message"
+placeholder_text = "Config key"
+
+[node name="get_value" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
 custom_minimum_size = Vector2(120, 60)
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
@@ -122,14 +162,74 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Get Value"
 
-[node name="OutputPanel" type="RichTextLabel" parent="MarginContainer/VBoxContainer" unique_id=1119327813]
+[node name="get_all" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Get All Values"
+
+[node name="get_json" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Get JSON Value"
+
+[node name="get_source" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Get Value Source"
+
+[node name="fetch_status" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Fetch Status"
+
+[node name="listen" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Listen for Updates"
+
+[node name="stop_listen" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Stop Listening"
+
+[node name="OutputPanel" type="RichTextLabel" parent="MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 theme_override_font_sizes/normal_font_size = 24
 scroll_following = true
 
-[node name="clear_output" type="Button" parent="MarginContainer/VBoxContainer" unique_id=1948305947]
+[node name="clear_output" type="Button" parent="MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
@@ -141,6 +241,16 @@ text = "Clear Output"
 
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/initialize" to="." method="_on_initialize_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_defaults" to="." method="_on_set_defaults_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_dev_interval" to="." method="_on_set_dev_interval_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_fetch_timeout" to="." method="_on_set_fetch_timeout_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/fetch" to="." method="_on_fetch_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/activate" to="." method="_on_activate_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/fetch_and_activate" to="." method="_on_fetch_and_activate_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/get_value" to="." method="_on_get_value_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/get_all" to="." method="_on_get_all_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/get_json" to="." method="_on_get_json_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/get_source" to="." method="_on_get_source_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/fetch_status" to="." method="_on_fetch_status_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/listen" to="." method="_on_listen_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/stop_listen" to="." method="_on_stop_listen_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/clear_output" to="." method="_on_clear_output_pressed"]

@@ -86,6 +86,33 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	@UsedByGodot
 	fun deleteUser() = auth.deleteUser()
 
+	@UsedByGodot
+	fun useAuthEmulator(host: String, port: Int) = auth.useEmulator(host, port)
+
+	@UsedByGodot
+	fun reauthenticateWithEmail(email: String, password: String) = auth.reauthenticateWithEmail(email, password)
+
+	@UsedByGodot
+	fun addAuthStateListener() = auth.addAuthStateListener()
+
+	@UsedByGodot
+	fun removeAuthStateListener() = auth.removeAuthStateListener()
+
+	@UsedByGodot
+	fun getIdToken(forceRefresh: Boolean) = auth.getIdToken(forceRefresh)
+
+	@UsedByGodot
+	fun updateProfile(displayName: String, photoUrl: String) = auth.updateProfile(displayName, photoUrl)
+
+	@UsedByGodot
+	fun updatePassword(newPassword: String) = auth.updatePassword(newPassword)
+
+	@UsedByGodot
+	fun reloadUser() = auth.reloadUser()
+
+	@UsedByGodot
+	fun unlinkProvider(providerId: String) = auth.unlinkProvider(providerId)
+
 	/**
 	 * Firestore
 	 */
@@ -116,6 +143,48 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun firestoreStopListeningToDocument(documentPath: String) = firestore.stopListeningToDocument(documentPath)
+
+	@UsedByGodot
+	fun firestoreUseEmulator(host: String, port: Int) = firestore.useEmulator(host, port)
+
+	@UsedByGodot
+	fun firestoreListenToCollection(collection: String) = firestore.listenToCollection(collection)
+
+	@UsedByGodot
+	fun firestoreStopListeningToCollection(collection: String) = firestore.stopListeningToCollection(collection)
+
+	@UsedByGodot
+	fun firestoreCreateBatch() = firestore.createBatch()
+
+	@UsedByGodot
+	fun firestoreBatchSet(batchId: Int, collection: String, documentId: String, data: Dictionary, merge: Boolean) = firestore.batchSet(batchId, collection, documentId, data, merge)
+
+	@UsedByGodot
+	fun firestoreBatchUpdate(batchId: Int, collection: String, documentId: String, data: Dictionary) = firestore.batchUpdate(batchId, collection, documentId, data)
+
+	@UsedByGodot
+	fun firestoreBatchDelete(batchId: Int, collection: String, documentId: String) = firestore.batchDelete(batchId, collection, documentId)
+
+	@UsedByGodot
+	fun firestoreCommitBatch(batchId: Int) = firestore.commitBatch(batchId)
+
+	@UsedByGodot
+	fun firestoreRunTransaction(collection: String, documentId: String, updateData: Dictionary) = firestore.runTransaction(collection, documentId, updateData)
+
+	@UsedByGodot
+	fun firestoreServerTimestamp() = firestore.serverTimestamp()
+
+	@UsedByGodot
+	fun firestoreArrayUnion(elements: Array<Any?>) = firestore.arrayUnion(elements)
+
+	@UsedByGodot
+	fun firestoreArrayRemove(elements: Array<Any?>) = firestore.arrayRemove(elements)
+
+	@UsedByGodot
+	fun firestoreIncrementBy(value: Double) = firestore.incrementBy(value)
+
+	@UsedByGodot
+	fun firestoreDeleteField() = firestore.deleteField()
 
 	/**
 	 * Cloud Storage
@@ -180,6 +249,18 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	@UsedByGodot
 	fun analyticsResetAnalyticsData() = analytics.resetAnalyticsData()
 
+	@UsedByGodot
+	fun analyticsSetDefaultEventParameters(parameters: Dictionary) = analytics.setDefaultEventParameters(parameters)
+
+	@UsedByGodot
+	fun analyticsGetAppInstanceId() = analytics.getAppInstanceId()
+
+	@UsedByGodot
+	fun analyticsSetConsent(adStorage: Boolean, analyticsStorage: Boolean, adUserData: Boolean, adPersonalization: Boolean) = analytics.setConsent(adStorage, analyticsStorage, adUserData, adPersonalization)
+
+	@UsedByGodot
+	fun analyticsSetSessionTimeout(seconds: Int) = analytics.setSessionTimeout(seconds)
+
 	/**
 	 * Remote Config
 	 */
@@ -189,6 +270,18 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun remoteConfigSetDefaults(defaults: Dictionary) = remoteConfig.setDefaults(defaults)
+
+	@UsedByGodot
+	fun remoteConfigSetMinimumFetchInterval(seconds: Long) = remoteConfig.setMinimumFetchInterval(seconds)
+
+	@UsedByGodot
+	fun remoteConfigSetFetchTimeout(seconds: Long) = remoteConfig.setFetchTimeout(seconds)
+
+	@UsedByGodot
+	fun remoteConfigFetch() = remoteConfig.fetch()
+
+	@UsedByGodot
+	fun remoteConfigActivate() = remoteConfig.activate()
 
 	@UsedByGodot
 	fun remoteConfigFetchAndActivate() = remoteConfig.fetchAndActivate()
@@ -204,4 +297,25 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun remoteConfigGetDouble(key: String) = remoteConfig.getDouble(key)
+
+	@UsedByGodot
+	fun remoteConfigGetAll() = remoteConfig.getAll()
+
+	@UsedByGodot
+	fun remoteConfigGetJson(key: String) = remoteConfig.getJson(key)
+
+	@UsedByGodot
+	fun remoteConfigGetValueSource(key: String) = remoteConfig.getValueSource(key)
+
+	@UsedByGodot
+	fun remoteConfigGetLastFetchStatus() = remoteConfig.getLastFetchStatus()
+
+	@UsedByGodot
+	fun remoteConfigGetLastFetchTime() = remoteConfig.getLastFetchTime()
+
+	@UsedByGodot
+	fun remoteConfigListenForUpdates() = remoteConfig.listenForUpdates()
+
+	@UsedByGodot
+	fun remoteConfigStopListeningForUpdates() = remoteConfig.stopListeningForUpdates()
 }

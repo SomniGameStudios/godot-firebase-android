@@ -33,4 +33,4 @@ google-services.json
 *.hprof
 
 # Claude Code
-.claude/
+.claude/settings.local.json

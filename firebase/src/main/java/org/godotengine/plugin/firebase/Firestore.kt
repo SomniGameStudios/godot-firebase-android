@@ -3,9 +3,11 @@ package org.godotengine.plugin.firebase
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.WriteBatch
 import com.google.firebase.firestore.firestore
 import org.godotengine.godot.Dictionary
 import org.godotengine.godot.plugin.SignalInfo
@@ -17,6 +19,9 @@ class Firestore(private val plugin: FirebasePlugin) {
 
 	private val firestore = Firebase.firestore
 	private val documentListeners: MutableMap<String, ListenerRegistration> = mutableMapOf()
+	private val collectionListeners: MutableMap<String, ListenerRegistration> = mutableMapOf()
+	private val batches: MutableMap<Int, WriteBatch> = mutableMapOf()
+	private var batchCounter = 0
 
 	fun firestoreSignals(): MutableSet<SignalInfo> {
 		val signals: MutableSet<SignalInfo> = mutableSetOf()
@@ -26,6 +31,9 @@ class Firestore(private val plugin: FirebasePlugin) {
 		signals.add(SignalInfo("firestore_delete_task_completed", Dictionary::class.java))
 		signals.add(SignalInfo("firestore_document_changed", String::class.java, Dictionary::class.java))
 		signals.add(SignalInfo("firestore_query_task_completed", Dictionary::class.java))
+		signals.add(SignalInfo("firestore_collection_changed", String::class.java, Array::class.java))
+		signals.add(SignalInfo("firestore_batch_task_completed", Dictionary::class.java))
+		signals.add(SignalInfo("firestore_transaction_task_completed", Dictionary::class.java))
 		return signals
 	}
 
@@ -43,8 +51,13 @@ class Firestore(private val plugin: FirebasePlugin) {
 		return result
 	}
 
+	fun useEmulator(host: String, port: Int) {
+		firestore.useEmulator(host, port)
+		Log.d(TAG, "Using Firestore emulator at $host:$port")
+	}
+
 	fun addDocument(collection: String, data: Dictionary) {
-		val map = data.toMap()
+		val map = convertDataForFirestore(data.toMap())
 
 		firestore.collection(collection).add(map)
 			.addOnSuccessListener { documentRef ->
@@ -59,7 +72,7 @@ class Firestore(private val plugin: FirebasePlugin) {
 	}
 
 	fun setDocument(collection: String, documentId: String, data: Dictionary, merge: Boolean = false) {
-		val map = data.toMap()
+		val map = convertDataForFirestore(data.toMap())
 		val docRef = firestore.collection(collection).document(documentId)
 		val task = if (merge) docRef.set(map, SetOptions.merge()) else docRef.set(map)
 
@@ -109,7 +122,7 @@ class Firestore(private val plugin: FirebasePlugin) {
 	}
 
 	fun updateDocument(collection: String, documentId: String, data: Dictionary) {
-		val map = data.toMap()
+		val map = convertDataForFirestore(data.toMap())
 		firestore.collection(collection).document(documentId).update(map)
 			.addOnSuccessListener {
 				Log.d(TAG, "Document $documentId updated successfully")
@@ -244,6 +257,183 @@ class Firestore(private val plugin: FirebasePlugin) {
 				result["error"] = e.message ?: "Unknown error"
 				plugin.emitGodotSignal("firestore_query_task_completed", result)
 			}
+	}
+
+	fun listenToCollection(collection: String) {
+		collectionListeners[collection]?.remove()
+		val colRef = firestore.collection(collection)
+		val listener = colRef.addSnapshotListener { snapshot, error ->
+			if (error != null) {
+				Log.e(TAG, "Listen failed for collection $collection", error)
+				return@addSnapshotListener
+			}
+			if (snapshot != null) {
+				val documents = mutableListOf<Dictionary>()
+				for (doc in snapshot.documents) {
+					val docDict = Dictionary()
+					docDict["docID"] = doc.id
+					docDict["data"] = snapshotToDictionary(doc)
+					documents.add(docDict)
+				}
+				Log.d(TAG, "Collection changed at $collection")
+				plugin.emitGodotSignal("firestore_collection_changed", collection, documents.toTypedArray())
+			}
+		}
+		collectionListeners[collection] = listener
+	}
+
+	fun stopListeningToCollection(collection: String) {
+		collectionListeners[collection]?.remove()
+		collectionListeners.remove(collection)
+		Log.d(TAG, "Stopped listening to collection $collection")
+	}
+
+	fun createBatch(): Int {
+		batchCounter++
+		batches[batchCounter] = firestore.batch()
+		Log.d(TAG, "Created batch $batchCounter")
+		return batchCounter
+	}
+
+	fun batchSet(batchId: Int, collection: String, documentId: String, data: Dictionary, merge: Boolean) {
+		val batch = batches[batchId] ?: run {
+			Log.e(TAG, "Batch $batchId not found")
+			return
+		}
+		val docRef = firestore.collection(collection).document(documentId)
+		val map = convertDataForFirestore(data.toMap())
+		if (merge) batch.set(docRef, map, SetOptions.merge()) else batch.set(docRef, map)
+	}
+
+	fun batchUpdate(batchId: Int, collection: String, documentId: String, data: Dictionary) {
+		val batch = batches[batchId] ?: run {
+			Log.e(TAG, "Batch $batchId not found")
+			return
+		}
+		val docRef = firestore.collection(collection).document(documentId)
+		batch.update(docRef, convertDataForFirestore(data.toMap()))
+	}
+
+	fun batchDelete(batchId: Int, collection: String, documentId: String) {
+		val batch = batches[batchId] ?: run {
+			Log.e(TAG, "Batch $batchId not found")
+			return
+		}
+		val docRef = firestore.collection(collection).document(documentId)
+		batch.delete(docRef)
+	}
+
+	fun commitBatch(batchId: Int) {
+		val batch = batches[batchId] ?: run {
+			Log.e(TAG, "Batch $batchId not found")
+			plugin.emitGodotSignal("firestore_batch_task_completed", createResultDict(false, error = "Batch $batchId not found"))
+			return
+		}
+		batch.commit()
+			.addOnSuccessListener {
+				batches.remove(batchId)
+				Log.d(TAG, "Batch $batchId committed successfully")
+				plugin.emitGodotSignal("firestore_batch_task_completed", createResultDict(true))
+			}
+			.addOnFailureListener { e ->
+				batches.remove(batchId)
+				Log.e(TAG, "Batch $batchId commit failed", e)
+				plugin.emitGodotSignal("firestore_batch_task_completed", createResultDict(false, error = e.message))
+			}
+	}
+
+	fun runTransaction(collection: String, documentId: String, updateData: Dictionary) {
+		val docRef = firestore.collection(collection).document(documentId)
+		firestore.runTransaction { transaction ->
+			transaction.get(docRef)
+			transaction.update(docRef, convertDataForFirestore(updateData.toMap()))
+			null
+		}
+			.addOnSuccessListener {
+				Log.d(TAG, "Transaction completed for $collection/$documentId")
+				plugin.emitGodotSignal("firestore_transaction_task_completed", createResultDict(true, documentId))
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Transaction failed for $collection/$documentId", e)
+				plugin.emitGodotSignal("firestore_transaction_task_completed", createResultDict(false, documentId, e.message))
+			}
+	}
+
+	fun serverTimestamp(): Dictionary {
+		val d = Dictionary()
+		d["__fieldValue"] = "serverTimestamp"
+		return d
+	}
+
+	fun arrayUnion(elements: Array<Any?>): Dictionary {
+		val d = Dictionary()
+		d["__fieldValue"] = "arrayUnion"
+		d["elements"] = elements
+		return d
+	}
+
+	fun arrayRemove(elements: Array<Any?>): Dictionary {
+		val d = Dictionary()
+		d["__fieldValue"] = "arrayRemove"
+		d["elements"] = elements
+		return d
+	}
+
+	fun incrementBy(value: Double): Dictionary {
+		val d = Dictionary()
+		d["__fieldValue"] = "increment"
+		d["value"] = value
+		return d
+	}
+
+	fun deleteField(): Dictionary {
+		val d = Dictionary()
+		d["__fieldValue"] = "deleteField"
+		return d
+	}
+
+	private fun convertDataForFirestore(map: Map<*, *>): Map<String, Any> {
+		val result = mutableMapOf<String, Any>()
+		map.forEach { (k, v) ->
+			val key = k?.toString() ?: return@forEach
+			val converted = convertValueForFirestore(v)
+			if (converted != null) result[key] = converted
+		}
+		return result
+	}
+
+	private fun convertValueForFirestore(value: Any?): Any? {
+		return when (value) {
+			null -> null
+			is Dictionary -> {
+				val fieldValueType = value["__fieldValue"] as? String
+				when (fieldValueType) {
+					"serverTimestamp" -> FieldValue.serverTimestamp()
+					"arrayUnion" -> {
+						val elements = (value["elements"] as? Array<*>)?.filterNotNull()?.toTypedArray() ?: emptyArray()
+						FieldValue.arrayUnion(*elements)
+					}
+					"arrayRemove" -> {
+						val elements = (value["elements"] as? Array<*>)?.filterNotNull()?.toTypedArray() ?: emptyArray()
+						FieldValue.arrayRemove(*elements)
+					}
+					"increment" -> {
+						when (val v = value["value"]) {
+							is Long -> FieldValue.increment(v)
+							is Double -> FieldValue.increment(v)
+							is Int -> FieldValue.increment(v.toLong())
+							else -> FieldValue.increment(0L)
+						}
+					}
+					"deleteField" -> FieldValue.delete()
+					else -> convertDataForFirestore(value.toMap())
+				}
+			}
+			is Map<*, *> -> convertDataForFirestore(value)
+			is List<*> -> value.map { convertValueForFirestore(it) }.toTypedArray()
+			is Array<*> -> value.map { convertValueForFirestore(it) }.toTypedArray()
+			else -> value
+		}
 	}
 
 	private fun snapshotToDictionary(snapshot: DocumentSnapshot): Dictionary {
