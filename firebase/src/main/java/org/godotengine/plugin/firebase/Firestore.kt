@@ -31,7 +31,7 @@ class Firestore(private val plugin: FirebasePlugin) {
 		signals.add(SignalInfo("firestore_delete_task_completed", Dictionary::class.java))
 		signals.add(SignalInfo("firestore_document_changed", String::class.java, Dictionary::class.java))
 		signals.add(SignalInfo("firestore_query_task_completed", Dictionary::class.java))
-		signals.add(SignalInfo("firestore_collection_changed", String::class.java, org.godotengine.godot.Array::class.java))
+		signals.add(SignalInfo("firestore_collection_changed", String::class.java, Array::class.java))
 		signals.add(SignalInfo("firestore_batch_task_completed", Dictionary::class.java))
 		signals.add(SignalInfo("firestore_transaction_task_completed", Dictionary::class.java))
 		return signals

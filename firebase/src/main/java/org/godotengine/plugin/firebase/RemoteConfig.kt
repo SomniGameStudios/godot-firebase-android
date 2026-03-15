@@ -1,8 +1,11 @@
 package org.godotengine.plugin.firebase
 
 import android.util.Log
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
 import com.google.firebase.remoteconfig.ConfigUpdateListenerRegistration
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import org.godotengine.godot.Dictionary
 import org.godotengine.godot.plugin.SignalInfo
@@ -170,15 +173,17 @@ class RemoteConfig(private val plugin: FirebasePlugin) {
 
 	fun listenForUpdates() {
 		if (configUpdateListener != null) return
-		configUpdateListener = remoteConfig.addOnConfigUpdateListener { configUpdate, error ->
-			if (error != null) {
-				Log.e(TAG, "Config update listener error", error)
-				return@addOnConfigUpdateListener
+		configUpdateListener = remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+			override fun onUpdate(configUpdate: ConfigUpdate) {
+				val updatedKeys = configUpdate.updatedKeys.toTypedArray()
+				Log.d(TAG, "Config updated, keys: ${updatedKeys.toList()}")
+				plugin.emitGodotSignal("remote_config_updated", updatedKeys)
 			}
-			val updatedKeys = configUpdate?.updatedKeys?.toTypedArray() ?: emptyArray()
-			Log.d(TAG, "Config updated, keys: ${updatedKeys.toList()}")
-			plugin.emitGodotSignal("remote_config_updated", updatedKeys)
-		}
+
+			override fun onError(error: FirebaseRemoteConfigException) {
+				Log.e(TAG, "Config update listener error", error)
+			}
+		})
 		Log.d(TAG, "Config update listener added")
 	}
 
