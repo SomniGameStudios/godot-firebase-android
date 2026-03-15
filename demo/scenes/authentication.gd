@@ -4,6 +4,7 @@ extends Control
 
 @onready var email = $MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/LineEdit
 @onready var password = $MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/LineEdit2
+@onready var display_name_input = $MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/display_name_input
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
@@ -19,6 +20,11 @@ func _ready() -> void:
 	Firebase.auth.email_verification_sent.connect(print_output.bind("email_verification_sent"))
 	Firebase.auth.password_reset_sent.connect(print_output.bind("password_reset_sent"))
 	Firebase.auth.user_deleted.connect(print_output.bind("user_deleted"))
+	Firebase.auth.auth_state_changed.connect(_on_auth_state_changed)
+	Firebase.auth.id_token_result.connect(print_output.bind("id_token_result"))
+	Firebase.auth.id_token_error.connect(print_output.bind("id_token_error"))
+	Firebase.auth.profile_updated.connect(print_output.bind("profile_updated"))
+	Firebase.auth.profile_update_failure.connect(print_output.bind("profile_update_failure"))
 
 
 func _log(message: String) -> void:
@@ -76,3 +82,46 @@ func _on_email_verification_pressed() -> void:
 
 func _on_password_reset_pressed() -> void:
 	Firebase.auth.send_password_reset_email(email.text)
+
+
+func _on_auth_state_changed(signed_in: bool, current_user_data) -> void:
+	_log("auth_state_changed: signed_in=" + str(signed_in) + " data=" + str(current_user_data))
+
+
+func _on_reauthenticate_pressed() -> void:
+	Firebase.auth.reauthenticate_with_email(email.text, password.text)
+
+
+func _on_add_auth_listener_pressed() -> void:
+	Firebase.auth.add_auth_state_listener()
+	_log("Auth state listener added")
+
+
+func _on_remove_auth_listener_pressed() -> void:
+	Firebase.auth.remove_auth_state_listener()
+	_log("Auth state listener removed")
+
+
+func _on_get_id_token_pressed() -> void:
+	Firebase.auth.get_id_token(false)
+
+
+func _on_update_profile_pressed() -> void:
+	Firebase.auth.update_profile(display_name_input.text)
+
+
+func _on_update_password_pressed() -> void:
+	Firebase.auth.update_password(password.text)
+
+
+func _on_reload_user_pressed() -> void:
+	Firebase.auth.reload_user()
+
+
+func _on_unlink_google_pressed() -> void:
+	Firebase.auth.unlink_provider("google.com")
+
+
+func _on_use_emulator_pressed() -> void:
+	Firebase.auth.use_emulator("10.0.2.2", 9099)
+	_log("Auth emulator set to 10.0.2.2:9099")

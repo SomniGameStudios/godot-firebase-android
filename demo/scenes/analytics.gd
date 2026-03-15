@@ -10,6 +10,7 @@ func _notification(what: int) -> void:
 
 
 func _ready() -> void:
+	Firebase.analytics.app_instance_id_result.connect(_on_instance_id)
 	_log("platform", "Android")
 
 
@@ -56,6 +57,40 @@ func _on_toggle_collection_pressed() -> void:
 	_log("action", "Setting analytics collection to %s..." % str(_collection_enabled))
 	Firebase.analytics.set_analytics_collection_enabled(_collection_enabled)
 	_log("done", "Collection %s" % ("enabled" if _collection_enabled else "disabled"))
+
+
+func _on_set_default_params_pressed() -> void:
+	var params = {"source": "demo", "build": "debug"}
+	_log("action", "Setting default event params: %s" % str(params))
+	Firebase.analytics.set_default_event_parameters(params)
+	_log("done", "Default event parameters set")
+
+
+func _on_get_instance_id_pressed() -> void:
+	_log("action", "Requesting app instance ID...")
+	Firebase.analytics.get_app_instance_id()
+
+
+func _on_instance_id(id: String) -> void:
+	_log("instance_id", id if not id.is_empty() else "(empty)")
+
+
+func _on_set_consent_granted_pressed() -> void:
+	_log("action", "Granting all consent...")
+	Firebase.analytics.set_consent(true, true, true, true)
+	_log("done", "All consent granted")
+
+
+func _on_set_consent_denied_pressed() -> void:
+	_log("action", "Denying all consent...")
+	Firebase.analytics.set_consent(false, false, false, false)
+	_log("done", "All consent denied")
+
+
+func _on_set_session_timeout_pressed() -> void:
+	_log("action", "Setting session timeout to 300s...")
+	Firebase.analytics.set_session_timeout(300)
+	_log("done", "Session timeout set to 300s")
 
 
 func _log(context: String, message: String) -> void:

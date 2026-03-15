@@ -134,6 +134,56 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
 text = "Toggle Collection"
 
+[node name="set_default_params" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Set Default Event Params"
+
+[node name="get_instance_id" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Get App Instance ID"
+
+[node name="set_consent_granted" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Grant All Consent"
+
+[node name="set_consent_denied" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Deny All Consent"
+
+[node name="set_session_timeout" type="Button" parent="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer"]
+custom_minimum_size = Vector2(120, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_normal")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+text = "Set Session Timeout (300s)"
+
 [node name="OutputPanel" type="RichTextLabel" parent="MarginContainer/VBoxContainer" unique_id=1459866916]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 200)
@@ -157,4 +207,9 @@ text = "Clear Output"
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_user_property" to="." method="_on_set_user_property_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/reset_analytics" to="." method="_on_reset_analytics_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/toggle_collection" to="." method="_on_toggle_collection_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_default_params" to="." method="_on_set_default_params_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/get_instance_id" to="." method="_on_get_instance_id_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_consent_granted" to="." method="_on_set_consent_granted_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_consent_denied" to="." method="_on_set_consent_denied_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ScrollContainer/ButtonContainer/set_session_timeout" to="." method="_on_set_session_timeout_pressed"]
 [connection signal="pressed" from="MarginContainer/VBoxContainer/clear_output" to="." method="_on_clear_output_pressed"]
