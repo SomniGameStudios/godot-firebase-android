@@ -34,6 +34,21 @@ The Firebase Authentication module in **GodotFirebaseAndroid** supports anonymou
 - `user_deleted(success: bool)`
   Emitted after an attempt to delete the current user.
 
+- `auth_state_changed(signed_in: bool, current_user_data: Dictionary)`
+  Emitted when the user's authentication state changes (sign in or sign out). Fires immediately when the listener is added with the current state.
+
+- `id_token_result(token: String)`
+  Emitted when an ID token is successfully retrieved.
+
+- `id_token_error(error_message: String)`
+  Emitted when retrieving an ID token fails.
+
+- `profile_updated(success: bool)`
+  Emitted when a user profile update succeeds.
+
+- `profile_update_failure(error_message: String)`
+  Emitted when a user profile update fails.
+
 ## Methods
 
 {: .text-green-100 }
@@ -172,4 +187,122 @@ Signs out the current user.
 
 ```gdscript
 Firebase.auth.sign_out()
+```
+
+---
+
+{: .text-green-100 }
+### use_emulator(host: String, port: int)
+
+Connects the Auth module to a local Firebase Auth emulator. Must be called before any other Auth operations.
+
+{: .warning }
+Only use this during development. Do not ship with emulator enabled.
+
+```gdscript
+Firebase.auth.use_emulator("10.0.2.2", 9099)
+```
+
+---
+
+{: .text-green-100 }
+### reauthenticate_with_email(email: String, password: String)
+
+Reauthenticates the current user with email and password credentials. Required before sensitive operations like `update_password` or `delete_current_user` if the user's last sign-in was too long ago.
+
+**Emits:** `auth_success` or `auth_failure`.
+
+```gdscript
+Firebase.auth.reauthenticate_with_email("testuser@email.com", "password123")
+```
+
+---
+
+{: .text-green-100 }
+### add_auth_state_listener()
+
+Starts listening for authentication state changes. The listener fires immediately with the current state, then again whenever the user signs in or out.
+
+**Emits:** `auth_state_changed` on every state change.
+
+```gdscript
+Firebase.auth.add_auth_state_listener()
+```
+
+---
+
+{: .text-green-100 }
+### remove_auth_state_listener()
+
+Stops listening for authentication state changes.
+
+```gdscript
+Firebase.auth.remove_auth_state_listener()
+```
+
+---
+
+{: .text-green-100 }
+### get_id_token(force_refresh: bool = false)
+
+Retrieves the Firebase ID token for the current user. The token can be used to authenticate with your backend server. Set `force_refresh` to `true` to force a token refresh even if the current token hasn't expired.
+
+**Emits:** `id_token_result` or `id_token_error`.
+
+```gdscript
+Firebase.auth.get_id_token()       # use cached token
+Firebase.auth.get_id_token(true)   # force refresh
+```
+
+---
+
+{: .text-green-100 }
+### update_profile(display_name: String, photo_url: String = "")
+
+Updates the current user's display name and/or photo URL. Pass an empty string to leave a field unchanged.
+
+**Emits:** `profile_updated` or `profile_update_failure`.
+
+```gdscript
+Firebase.auth.update_profile("Alice", "https://example.com/photo.png")
+Firebase.auth.update_profile("Alice")  # update name only
+```
+
+---
+
+{: .text-green-100 }
+### update_password(new_password: String)
+
+Updates the current user's password. The user must have been recently authenticated (see `reauthenticate_with_email`).
+
+**Emits:** `auth_success` or `auth_failure`.
+
+```gdscript
+Firebase.auth.update_password("newSecurePassword123")
+```
+
+---
+
+{: .text-green-100 }
+### reload_user()
+
+Reloads the current user's profile data from Firebase. Useful after operations like email verification to get the updated `emailVerified` status.
+
+**Emits:** `auth_success` or `auth_failure`.
+
+```gdscript
+Firebase.auth.reload_user()
+```
+
+---
+
+{: .text-green-100 }
+### unlink_provider(provider_id: String)
+
+Unlinks a provider from the current user's account. Common provider IDs: `"google.com"`, `"password"`.
+
+**Emits:** `auth_success` or `auth_failure`.
+
+```gdscript
+Firebase.auth.unlink_provider("google.com")
 ```

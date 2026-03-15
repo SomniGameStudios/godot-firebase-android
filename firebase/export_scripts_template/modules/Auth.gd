@@ -8,6 +8,11 @@ signal sign_out_success(success: bool)
 signal password_reset_sent(success: bool)
 signal email_verification_sent(success: bool)
 signal user_deleted(success: bool)
+signal auth_state_changed(signed_in: bool, current_user_data: Dictionary)
+signal id_token_result(token: String)
+signal id_token_error(error_message: String)
+signal profile_updated(success: bool)
+signal profile_update_failure(error_message: String)
 
 var _plugin_singleton: Object
 
@@ -22,6 +27,11 @@ func _connect_signals():
 	_plugin_singleton.connect("password_reset_sent", password_reset_sent.emit)
 	_plugin_singleton.connect("email_verification_sent", email_verification_sent.emit)
 	_plugin_singleton.connect("user_deleted", user_deleted.emit)
+	_plugin_singleton.connect("auth_state_changed", auth_state_changed.emit)
+	_plugin_singleton.connect("id_token_result", id_token_result.emit)
+	_plugin_singleton.connect("id_token_error", id_token_error.emit)
+	_plugin_singleton.connect("profile_updated", profile_updated.emit)
+	_plugin_singleton.connect("profile_update_failure", profile_update_failure.emit)
 
 func sign_in_anonymously() -> void:
 	if _plugin_singleton:
@@ -70,3 +80,39 @@ func is_signed_in() -> bool:
 func sign_out() -> void:
 	if _plugin_singleton:
 		_plugin_singleton.signOut()
+
+func use_emulator(host: String, port: int) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.useAuthEmulator(host, port)
+
+func reauthenticate_with_email(email: String, password: String) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.reauthenticateWithEmail(email, password)
+
+func add_auth_state_listener() -> void:
+	if _plugin_singleton:
+		_plugin_singleton.addAuthStateListener()
+
+func remove_auth_state_listener() -> void:
+	if _plugin_singleton:
+		_plugin_singleton.removeAuthStateListener()
+
+func get_id_token(force_refresh: bool = false) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.getIdToken(force_refresh)
+
+func update_profile(display_name: String, photo_url: String = "") -> void:
+	if _plugin_singleton:
+		_plugin_singleton.updateProfile(display_name, photo_url)
+
+func update_password(new_password: String) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.updatePassword(new_password)
+
+func reload_user() -> void:
+	if _plugin_singleton:
+		_plugin_singleton.reloadUser()
+
+func unlink_provider(provider_id: String) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.unlinkProvider(provider_id)

@@ -2,13 +2,16 @@ package org.godotengine.plugin.firebase
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
 
@@ -25,6 +28,7 @@ class Authentication(private val plugin: FirebasePlugin) {
 	private val auth: FirebaseAuth = Firebase.auth
 	private lateinit var googleSignInClient: GoogleSignInClient
 	private var isLinkingAnonymous = false
+	private var authStateListener: FirebaseAuth.AuthStateListener? = null
 
 	fun authSignals(): MutableSet<SignalInfo> {
 		val signals: MutableSet<SignalInfo> = mutableSetOf()
@@ -36,6 +40,11 @@ class Authentication(private val plugin: FirebasePlugin) {
 		signals.add(SignalInfo("password_reset_sent", Boolean::class.javaObjectType))
 		signals.add(SignalInfo("email_verification_sent", Boolean::class.javaObjectType))
 		signals.add(SignalInfo("user_deleted", Boolean::class.javaObjectType))
+		signals.add(SignalInfo("auth_state_changed", Boolean::class.javaObjectType, Dictionary::class.java))
+		signals.add(SignalInfo("id_token_result", String::class.java))
+		signals.add(SignalInfo("id_token_error", String::class.java))
+		signals.add(SignalInfo("profile_updated", Boolean::class.javaObjectType))
+		signals.add(SignalInfo("profile_update_failure", String::class.java))
 		return signals
 	}
 
@@ -262,6 +271,138 @@ class Authentication(private val plugin: FirebasePlugin) {
 				Log.e(TAG, "Failed to delete user", e)
 				plugin.emitGodotSignal("user_deleted", false)
 				plugin.emitGodotSignal("auth_failure", "Delete failed: ${e.message}")
+			}
+	}
+
+	fun useEmulator(host: String, port: Int) {
+		auth.useEmulator(host, port)
+		Log.d(TAG, "Using Auth emulator at $host:$port")
+	}
+
+	fun reauthenticateWithEmail(email: String, password: String) {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("auth_failure", "No user signed in.")
+			return
+		}
+		val credential = EmailAuthProvider.getCredential(email, password)
+		user.reauthenticate(credential)
+			.addOnSuccessListener {
+				Log.d(TAG, "Reauthentication successful.")
+				plugin.emitGodotSignal("auth_success", getCurrentUser())
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Reauthentication failed", e)
+				plugin.emitGodotSignal("auth_failure", e.message ?: "Reauthentication failed")
+			}
+	}
+
+	fun addAuthStateListener() {
+		if (authStateListener != null) return
+		authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+			val user = firebaseAuth.currentUser
+			val signedIn = user != null
+			plugin.emitGodotSignal("auth_state_changed", signedIn, getCurrentUser())
+		}
+		auth.addAuthStateListener(authStateListener!!)
+		Log.d(TAG, "Auth state listener added.")
+	}
+
+	fun removeAuthStateListener() {
+		authStateListener?.let {
+			auth.removeAuthStateListener(it)
+			authStateListener = null
+			Log.d(TAG, "Auth state listener removed.")
+		}
+	}
+
+	fun getIdToken(forceRefresh: Boolean) {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("id_token_error", "No user signed in.")
+			return
+		}
+		user.getIdToken(forceRefresh)
+			.addOnSuccessListener { result ->
+				val token = result.token ?: ""
+				Log.d(TAG, "ID token retrieved.")
+				plugin.emitGodotSignal("id_token_result", token)
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Failed to get ID token", e)
+				plugin.emitGodotSignal("id_token_error", e.message ?: "Failed to get ID token")
+			}
+	}
+
+	fun updateProfile(displayName: String, photoUrl: String) {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("profile_update_failure", "No user signed in.")
+			return
+		}
+		val profileUpdates = UserProfileChangeRequest.Builder()
+			.setDisplayName(displayName.ifEmpty { null })
+			.setPhotoUri(if (photoUrl.isNotEmpty()) Uri.parse(photoUrl) else null)
+			.build()
+		user.updateProfile(profileUpdates)
+			.addOnSuccessListener {
+				Log.d(TAG, "Profile updated.")
+				plugin.emitGodotSignal("profile_updated", true)
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Profile update failed", e)
+				plugin.emitGodotSignal("profile_update_failure", e.message ?: "Profile update failed")
+			}
+	}
+
+	fun updatePassword(newPassword: String) {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("auth_failure", "No user signed in.")
+			return
+		}
+		user.updatePassword(newPassword)
+			.addOnSuccessListener {
+				Log.d(TAG, "Password updated.")
+				plugin.emitGodotSignal("auth_success", getCurrentUser())
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Password update failed", e)
+				plugin.emitGodotSignal("auth_failure", e.message ?: "Password update failed")
+			}
+	}
+
+	fun reloadUser() {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("auth_failure", "No user signed in.")
+			return
+		}
+		user.reload()
+			.addOnSuccessListener {
+				Log.d(TAG, "User reloaded.")
+				plugin.emitGodotSignal("auth_success", getCurrentUser())
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "User reload failed", e)
+				plugin.emitGodotSignal("auth_failure", e.message ?: "User reload failed")
+			}
+	}
+
+	fun unlinkProvider(providerId: String) {
+		val user = auth.currentUser
+		if (user == null) {
+			plugin.emitGodotSignal("auth_failure", "No user signed in.")
+			return
+		}
+		user.unlink(providerId)
+			.addOnSuccessListener {
+				Log.d(TAG, "Provider $providerId unlinked.")
+				plugin.emitGodotSignal("auth_success", getCurrentUser())
+			}
+			.addOnFailureListener { e ->
+				Log.e(TAG, "Unlink provider failed", e)
+				plugin.emitGodotSignal("auth_failure", e.message ?: "Unlink failed")
 			}
 	}
 
