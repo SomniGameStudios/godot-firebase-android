@@ -52,6 +52,7 @@ Contains a Godot project with one scene per module for manual testing. The demo'
 - **Kotlin DSL** for all Gradle files
 - **No `google-services.json` in repo** — must be supplied per-project in `demo/android/build/`
 - **Fork:** origin is SomniGameStudios, upstream is syntaxerror247/GodotFirebaseAndroid
+- **PRs:** Always open pull requests against the fork repo (`SomniGameStudios/godot-firebase-android`), never against upstream
 
 ## Adding a New Firebase Module
 
