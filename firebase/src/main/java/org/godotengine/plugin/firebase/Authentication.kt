@@ -236,6 +236,15 @@ class Authentication(private val plugin: FirebasePlugin) {
 			userData["emailVerified"] = user.isEmailVerified
 			userData["isAnonymous"] = user.isAnonymous
 			userData["uid"] = user.uid
+			val providers = Array<Dictionary>(user.providerData.size) { i ->
+				val info = user.providerData[i]
+				val p = Dictionary()
+				p["providerId"] = info.providerId
+				p["email"] = info.email ?: ""
+				p["displayName"] = info.displayName ?: ""
+				p
+			}
+			userData["providerData"] = providers
 		} else {
 			userData["error"] = "No user signed in"
 			Log.d(TAG, "No user signed in")
