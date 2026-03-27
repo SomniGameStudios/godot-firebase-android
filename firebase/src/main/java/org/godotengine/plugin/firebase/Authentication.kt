@@ -236,6 +236,9 @@ class Authentication(private val plugin: FirebasePlugin) {
 			userData["emailVerified"] = user.isEmailVerified
 			userData["isAnonymous"] = user.isAnonymous
 			userData["uid"] = user.uid
+			userData["hasGoogle"] = user.providerData.any { it.providerId == "google.com" }
+			userData["hasApple"] = user.providerData.any { it.providerId == "apple.com" }
+			userData["providerIds"] = user.providerData.joinToString(",") { it.providerId }
 		} else {
 			userData["error"] = "No user signed in"
 			Log.d(TAG, "No user signed in")
