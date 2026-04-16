@@ -18,17 +18,24 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	private val realtimeDatabase = RealtimeDatabase(this)
 	private val analytics = Analytics(this)
 	private val remoteConfig = RemoteConfig(this)
+	private val messaging = Messaging(this)
 
 	override fun onMainCreate(activity: Activity?): View? {
 		activity?.let {
 			auth.init(it)
 			analytics.init(it)
+			messaging.init(it)
 		}
 		return super.onMainCreate(activity)
 	}
 
 	override fun onMainActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		auth.handleActivityResult(requestCode, resultCode, data)
+	}
+
+	override fun onMainResume() {
+		super.onMainResume()
+		messaging.onMainResume()
 	}
 
 	override fun getPluginSignals(): MutableSet<SignalInfo> {
@@ -39,7 +46,12 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 		signals.addAll(storage.storageSignals())
 		signals.addAll(analytics.analyticsSignals())
 		signals.addAll(remoteConfig.remoteConfigSignals())
+		signals.addAll(messaging.messagingSignals())
 		return signals
+	}
+
+	fun emitGodotSignal(signalName: String) {
+		emitSignal(signalName)
 	}
 
 	fun emitGodotSignal(signalName: String, arg1: Any?, arg2: Any? = null) {
@@ -318,4 +330,29 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun remoteConfigStopListeningForUpdates() = remoteConfig.stopListeningForUpdates()
+
+	/**
+	 * Messaging
+	 */
+
+	@UsedByGodot
+	fun messagingGetToken() = messaging.getToken()
+
+	@UsedByGodot
+	fun messagingDeleteToken() = messaging.deleteToken()
+
+	@UsedByGodot
+	fun messagingSubscribeToTopic(topic: String) = messaging.subscribeToTopic(topic)
+
+	@UsedByGodot
+	fun messagingUnsubscribeFromTopic(topic: String) = messaging.unsubscribeFromTopic(topic)
+
+	@UsedByGodot
+	fun messagingHasPermission() = messaging.hasPermission()
+
+	@UsedByGodot
+	fun messagingGetPermissionStatus() = messaging.getPermissionStatus()
+
+	@UsedByGodot
+	fun messagingRequestPermission(provisional: Boolean = false) = messaging.requestPermission()
 }

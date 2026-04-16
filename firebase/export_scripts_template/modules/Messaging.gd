@@ -1,0 +1,55 @@
+extends Node
+
+signal token_received(token: String)
+signal notification_received(data: Dictionary)
+signal notification_opened(data: Dictionary)
+signal permission_result(granted: bool)
+signal topic_subscribe_success(topic: String)
+signal topic_subscribe_failure(message: String)
+signal topic_unsubscribe_success(topic: String)
+signal topic_unsubscribe_failure(message: String)
+signal token_delete_success()
+signal token_delete_failure(message: String)
+
+var _plugin_singleton: Object
+
+func _connect_signals():
+	if not _plugin_singleton:
+		return
+	_plugin_singleton.connect("messaging_token_received", token_received.emit)
+	_plugin_singleton.connect("messaging_notification_received", notification_received.emit)
+	_plugin_singleton.connect("messaging_permission_result", permission_result.emit)
+	_plugin_singleton.connect("messaging_topic_subscribe_success", topic_subscribe_success.emit)
+	_plugin_singleton.connect("messaging_topic_subscribe_failure", topic_subscribe_failure.emit)
+	_plugin_singleton.connect("messaging_topic_unsubscribe_success", topic_unsubscribe_success.emit)
+	_plugin_singleton.connect("messaging_topic_unsubscribe_failure", topic_unsubscribe_failure.emit)
+	_plugin_singleton.connect("messaging_token_delete_success", token_delete_success.emit)
+	_plugin_singleton.connect("messaging_token_delete_failure", token_delete_failure.emit)
+
+func configure() -> void:
+	pass
+
+func request_permission(provisional: bool = false) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.messagingRequestPermission(provisional)
+
+func get_permission_status() -> String:
+	if _plugin_singleton:
+		return _plugin_singleton.messagingGetPermissionStatus()
+	return "unsupported"
+
+func get_token() -> void:
+	if _plugin_singleton:
+		_plugin_singleton.messagingGetToken()
+
+func delete_token() -> void:
+	if _plugin_singleton:
+		_plugin_singleton.messagingDeleteToken()
+
+func subscribe_to_topic(topic: String) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.messagingSubscribeToTopic(topic)
+
+func unsubscribe_from_topic(topic: String) -> void:
+	if _plugin_singleton:
+		_plugin_singleton.messagingUnsubscribeFromTopic(topic)

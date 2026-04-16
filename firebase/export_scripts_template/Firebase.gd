@@ -6,6 +6,7 @@ var realtimeDB = preload("res://addons/GodotFirebaseAndroid/modules/RealtimeDB.g
 var storage = preload("res://addons/GodotFirebaseAndroid/modules/Storage.gd").new()
 var analytics = preload("res://addons/GodotFirebaseAndroid/modules/Analytics.gd").new()
 var remote_config = preload("res://addons/GodotFirebaseAndroid/modules/RemoteConfig.gd").new()
+var messaging = preload("res://addons/GodotFirebaseAndroid/modules/Messaging.gd").new()
 
 func _ready() -> void:
 	if Engine.has_singleton("GodotFirebaseAndroid"):
@@ -28,6 +29,9 @@ func _ready() -> void:
 
 		remote_config._plugin_singleton = _plugin_singleton
 		remote_config._connect_signals()
+
+		messaging._plugin_singleton = _plugin_singleton
+		messaging._connect_signals()
 	else:
 		if not OS.has_feature("editor"):
 			printerr("GodotFirebaseAndroid singleton not found!")
