@@ -1,6 +1,7 @@
 extends Node
 
 signal token_received(token: String)
+signal token_error(message: String)
 signal notification_received(data: Dictionary)
 signal notification_opened(data: Dictionary)
 signal permission_result(granted: bool)
@@ -17,7 +18,9 @@ func _connect_signals():
 	if not _plugin_singleton:
 		return
 	_plugin_singleton.connect("messaging_token_received", token_received.emit)
+	_plugin_singleton.connect("messaging_token_error", token_error.emit)
 	_plugin_singleton.connect("messaging_notification_received", notification_received.emit)
+	_plugin_singleton.connect("messaging_notification_opened", notification_opened.emit)
 	_plugin_singleton.connect("messaging_permission_result", permission_result.emit)
 	_plugin_singleton.connect("messaging_topic_subscribe_success", topic_subscribe_success.emit)
 	_plugin_singleton.connect("messaging_topic_subscribe_failure", topic_subscribe_failure.emit)

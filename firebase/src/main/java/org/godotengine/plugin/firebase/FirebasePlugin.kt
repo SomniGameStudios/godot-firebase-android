@@ -8,6 +8,7 @@ import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
+import com.google.firebase.FirebaseApp
 
 class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	override fun getPluginName(): String = "GodotFirebaseAndroid"
@@ -22,6 +23,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	override fun onMainCreate(activity: Activity?): View? {
 		activity?.let {
+			FirebaseApp.initializeApp(it)
 			auth.init(it)
 			analytics.init(it)
 			messaging.init(it)

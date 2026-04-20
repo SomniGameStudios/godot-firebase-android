@@ -11,19 +11,26 @@ class GodotFirebaseMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "Message received from: ${remoteMessage.from}")
-        
         val payload = Dictionary()
+        
+        // Extract notification content (Title and Body)
+        remoteMessage.notification?.let {
+            payload["title"] = it.title ?: ""
+            payload["body"] = it.body ?: ""
+        }
+
+        // Extract custom data fields
         for ((key, value) in remoteMessage.data) {
             payload[key] = value
         }
 
-        // Add to queue for the Godot Activity to drain
+        // Add to queue and notify the Messaging instance to drain it immediately if active
         MessagingEventQueue.addMessage(payload)
+        Messaging.instance?.drainQueue()
     }
 
     override fun onNewToken(token: String) {
-        Log.d(TAG, "New token: $token")
         MessagingEventQueue.addToken(token)
+        Messaging.instance?.drainQueue()
     }
 }

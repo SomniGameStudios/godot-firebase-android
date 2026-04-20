@@ -2,6 +2,7 @@ package org.godotengine.plugin.firebase
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
@@ -14,6 +15,11 @@ import org.godotengine.godot.plugin.SignalInfo
 class Messaging(private val plugin: FirebasePlugin) {
     companion object {
         private const val TAG = "GodotFirebaseMessaging"
+        var instance: Messaging? = null
+    }
+
+    init {
+        instance = this
     }
 
     private var activity: Activity? = null
@@ -23,18 +29,40 @@ class Messaging(private val plugin: FirebasePlugin) {
     }
 
     fun onMainResume() {
+        checkIntent(activity?.intent)
         drainQueue()
     }
-    
-    private fun drainQueue() {
-        val events = MessagingEventQueue.drain()
-        for (event in events) {
-            when (event) {
-                is MessagingEventQueue.Event.MessageReceived -> {
-                    plugin.emitGodotSignal("messaging_notification_received", event.payload)
+
+    private fun checkIntent(intent: Intent?) {
+        val extras = intent?.extras
+        if (extras != null && extras.containsKey("google.message_id")) {
+            val payload = Dictionary()
+            for (key in extras.keySet()) {
+                val value = extras.get(key)
+                if (value != null) {
+                    payload[key] = value.toString()
                 }
-                is MessagingEventQueue.Event.TokenRefreshed -> {
-                    plugin.emitGodotSignal("messaging_token_received", event.token)
+            }
+            plugin.emitGodotSignal("messaging_notification_opened", payload)
+            // Clear the extras to avoid re-emitting on next resume
+            intent.removeExtra("google.message_id")
+        }
+    }
+    
+    fun drainQueue() {
+        val events = MessagingEventQueue.drain()
+        if (events.isEmpty()) return
+        
+        val currentActivity = activity ?: return
+        currentActivity.runOnUiThread {
+            for (event in events) {
+                when (event) {
+                    is MessagingEventQueue.Event.MessageReceived -> {
+                        plugin.emitGodotSignal("messaging_notification_received", event.payload)
+                    }
+                    is MessagingEventQueue.Event.TokenRefreshed -> {
+                        plugin.emitGodotSignal("messaging_token_received", event.token)
+                    }
                 }
             }
         }
@@ -43,7 +71,9 @@ class Messaging(private val plugin: FirebasePlugin) {
     fun messagingSignals(): MutableSet<SignalInfo> {
         val signals: MutableSet<SignalInfo> = mutableSetOf()
         signals.add(SignalInfo("messaging_token_received", String::class.java))
+        signals.add(SignalInfo("messaging_token_error", String::class.java))
         signals.add(SignalInfo("messaging_notification_received", Dictionary::class.java))
+        signals.add(SignalInfo("messaging_notification_opened", Dictionary::class.java))
         signals.add(SignalInfo("messaging_permission_result", Boolean::class.javaObjectType))
         signals.add(SignalInfo("messaging_topic_subscribe_success", String::class.java))
         signals.add(SignalInfo("messaging_topic_subscribe_failure", String::class.java))
@@ -55,51 +85,83 @@ class Messaging(private val plugin: FirebasePlugin) {
     }
 
     fun getToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                Log.w(TAG, "Fetching FCM registration token failed", task.exception)
-                return@addOnCompleteListener
-            }
+        val currentActivity = activity
+        if (currentActivity == null) {
+            plugin.emitGodotSignal("messaging_token_error", "Android activity is null")
+            return
+        }
+        currentActivity.runOnUiThread {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(currentActivity) { task ->
+                if (!task.isSuccessful) {
+                    val errorMsg = task.exception?.message ?: "Unknown error"
+                    Log.w(TAG, "Fetching FCM registration token failed: $errorMsg", task.exception)
+                    plugin.emitGodotSignal("messaging_token_error", errorMsg)
+                    return@addOnCompleteListener
+                }
 
-            val token = task.result
-            if (token != null) {
-                plugin.emitGodotSignal("messaging_token_received", token)
+                val token = task.result
+                if (token != null) {
+                    plugin.emitGodotSignal("messaging_token_received", token)
+                } else {
+                    plugin.emitGodotSignal("messaging_token_error", "Token is null")
+                }
             }
         }
     }
 
     fun deleteToken() {
-        FirebaseMessaging.getInstance().deleteToken().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG, "Token deleted successfully")
-                plugin.emitGodotSignal("messaging_token_delete_success")
-            } else {
-                Log.w(TAG, "Token deletion failed", task.exception)
-                plugin.emitGodotSignal("messaging_token_delete_failure", task.exception?.message ?: "Unknown error")
+        val currentActivity = activity
+        if (currentActivity == null) {
+            plugin.emitGodotSignal("messaging_token_delete_failure", "Android activity is null")
+            return
+        }
+        currentActivity.runOnUiThread {
+            FirebaseMessaging.getInstance().deleteToken().addOnCompleteListener(currentActivity) { task ->
+                if (task.isSuccessful) {
+                    plugin.emitGodotSignal("messaging_token_delete_success")
+                } else {
+                    val errorMsg = task.exception?.message ?: "Unknown error"
+                    Log.w(TAG, "Token deletion failed: $errorMsg", task.exception)
+                    plugin.emitGodotSignal("messaging_token_delete_failure", errorMsg)
+                }
             }
         }
     }
 
     fun subscribeToTopic(topic: String) {
-        FirebaseMessaging.getInstance().subscribeToTopic(topic).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG, "Subscribed to topic: $topic")
-                plugin.emitGodotSignal("messaging_topic_subscribe_success", topic)
-            } else {
-                Log.w(TAG, "Subscription to topic failed", task.exception)
-                plugin.emitGodotSignal("messaging_topic_subscribe_failure", task.exception?.message ?: "Unknown error")
+        val currentActivity = activity
+        if (currentActivity == null) {
+            plugin.emitGodotSignal("messaging_topic_subscribe_failure", "Android activity is null")
+            return
+        }
+        currentActivity.runOnUiThread {
+            FirebaseMessaging.getInstance().subscribeToTopic(topic).addOnCompleteListener(currentActivity) { task ->
+                if (task.isSuccessful) {
+                    plugin.emitGodotSignal("messaging_topic_subscribe_success", topic)
+                } else {
+                    val errorMsg = task.exception?.message ?: "Unknown error"
+                    Log.w(TAG, "Subscription to topic failed: $errorMsg", task.exception)
+                    plugin.emitGodotSignal("messaging_topic_subscribe_failure", errorMsg)
+                }
             }
         }
     }
 
     fun unsubscribeFromTopic(topic: String) {
-        FirebaseMessaging.getInstance().unsubscribeFromTopic(topic).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Log.d(TAG, "Unsubscribed from topic: $topic")
-                plugin.emitGodotSignal("messaging_topic_unsubscribe_success", topic)
-            } else {
-                Log.w(TAG, "Unsubscription from topic failed", task.exception)
-                plugin.emitGodotSignal("messaging_topic_unsubscribe_failure", task.exception?.message ?: "Unknown error")
+        val currentActivity = activity
+        if (currentActivity == null) {
+            plugin.emitGodotSignal("messaging_topic_unsubscribe_failure", "Android activity is null")
+            return
+        }
+        currentActivity.runOnUiThread {
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic).addOnCompleteListener(currentActivity) { task ->
+                if (task.isSuccessful) {
+                    plugin.emitGodotSignal("messaging_topic_unsubscribe_success", topic)
+                } else {
+                    val errorMsg = task.exception?.message ?: "Unknown error"
+                    Log.w(TAG, "Unsubscription from topic failed: $errorMsg", task.exception)
+                    plugin.emitGodotSignal("messaging_topic_unsubscribe_failure", errorMsg)
+                }
             }
         }
     }
@@ -116,13 +178,19 @@ class Messaging(private val plugin: FirebasePlugin) {
     }
 
     fun requestPermission() {
-        if (Build.VERSION.SDK_INT >= 33) {
-            val act = activity
-            if (act != null && !hasPermission()) {
-                ActivityCompat.requestPermissions(act, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
-            }
+        val currentActivity = activity
+        if (currentActivity == null) {
+            plugin.emitGodotSignal("messaging_permission_result", hasPermission())
+            return
         }
-        plugin.emitGodotSignal("messaging_permission_result", hasPermission())
+        currentActivity.runOnUiThread {
+            if (Build.VERSION.SDK_INT >= 33) {
+                if (!hasPermission()) {
+                    ActivityCompat.requestPermissions(currentActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+                }
+            }
+            plugin.emitGodotSignal("messaging_permission_result", hasPermission())
+        }
     }
 
     fun getPermissionStatus(): String {

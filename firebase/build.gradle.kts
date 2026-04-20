@@ -44,7 +44,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:21.0.1")
     implementation("com.google.firebase:firebase-analytics:22.4.0")
     implementation("com.google.firebase:firebase-config:22.0.1")
-    compileOnly("com.google.firebase:firebase-messaging:23.0.0")
+    implementation("com.google.firebase:firebase-messaging:23.0.0")
 }
 
 // BUILD TASKS DEFINITION
