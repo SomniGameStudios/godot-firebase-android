@@ -1,5 +1,3 @@
-extends Node
-
 signal token_received(token: String)
 signal token_error(message: String)
 signal notification_received(data: Dictionary)

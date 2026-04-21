@@ -1,5 +1,3 @@
-extends Node
-
 signal upload_completed(result: Dictionary)
 signal download_task_completed(result: Dictionary)
 signal delete_task_completed(result: Dictionary)
@@ -10,7 +8,7 @@ var _plugin_singleton: Object
 func _connect_signals():
 	if not _plugin_singleton:
 		return
-	_plugin_singleton.connect("storage_upload_completed", upload_completed.emit)
+	_plugin_singleton.connect("storage_upload_task_completed", upload_completed.emit)
 	_plugin_singleton.connect("storage_download_task_completed", download_task_completed.emit)
 	_plugin_singleton.connect("storage_delete_task_completed", delete_task_completed.emit)
 	_plugin_singleton.connect("storage_list_task_completed", list_task_completed.emit)
