@@ -136,7 +136,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	fun firestoreGetDocumentsInCollection(collection: String) = firestore.getDocumentsInCollection(collection)
 
 	@UsedByGodot
-	fun firestoreQueryDocuments(collection: String, filters: Array<Any?>, orderBy: String, orderDescending: Boolean, limitCount: Int) = firestore.queryDocuments(collection, filters, orderBy, orderDescending, limitCount)
+	fun firestoreQueryDocuments(collection: String, filtersJson: String, orderBy: String, orderDescending: Boolean, limitCount: Int) = firestore.queryDocuments(collection, filtersJson, orderBy, orderDescending, limitCount)
 
 	@UsedByGodot
 	fun firestoreListenToDocument(documentPath: String) = firestore.listenToDocument(documentPath)
@@ -175,10 +175,10 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	fun firestoreServerTimestamp() = firestore.serverTimestamp()
 
 	@UsedByGodot
-	fun firestoreArrayUnion(elements: Array<Any?>) = firestore.arrayUnion(elements)
+	fun firestoreArrayUnion(elementsJson: String) = firestore.arrayUnion(elementsJson)
 
 	@UsedByGodot
-	fun firestoreArrayRemove(elements: Array<Any?>) = firestore.arrayRemove(elements)
+	fun firestoreArrayRemove(elementsJson: String) = firestore.arrayRemove(elementsJson)
 
 	@UsedByGodot
 	fun firestoreIncrementBy(value: Double) = firestore.incrementBy(value)
