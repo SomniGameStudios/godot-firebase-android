@@ -7,6 +7,10 @@ var export_plugin : AndroidExportPlugin
 const BUILD_GRADLE_PLUGIN_LINE := "id 'com.google.gms.google-services'"
 const SETTINGS_GRADLE_PLUGIN_LINE := "id 'com.google.gms.google-services' version '4.4.2' apply false"
 
+# google-services.json locations
+const ADDON_GOOGLE_SERVICES_PATH := "res://addons/GodotFirebaseAndroid/google-services.json"
+const BUILD_GOOGLE_SERVICES_PATH := "res://android/build/google-services.json"
+
 const DEPENDENCIES := [
 	"com.google.firebase:firebase-auth:23.2.0",
 	"com.google.android.gms:play-services-auth:21.3.0",
@@ -51,8 +55,17 @@ class AndroidExportPlugin extends EditorExportPlugin:
 	func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int) -> void:
 		if not features.has("android"):
 			return
-		
-		if (not get_option("gradle_build/use_gradle_build")) or (not FileAccess.file_exists("res://android/build/google-services.json")):
+
+		# Godot regenerates android/build/ on each export, wiping google-services.json.
+		# Auto-copy from the addon folder (safe from wipes) if available.
+		if FileAccess.file_exists(ADDON_GOOGLE_SERVICES_PATH) and not FileAccess.file_exists(BUILD_GOOGLE_SERVICES_PATH):
+			var content := FileAccess.open(ADDON_GOOGLE_SERVICES_PATH, FileAccess.READ).get_as_text()
+			var dest := FileAccess.open(BUILD_GOOGLE_SERVICES_PATH, FileAccess.WRITE)
+			dest.store_string(content)
+			dest.close()
+			print("Info/GodotFirebaseAndroid: Copied google-services.json to android/build/")
+
+		if (not get_option("gradle_build/use_gradle_build")) or (not FileAccess.file_exists(BUILD_GOOGLE_SERVICES_PATH)):
 			_clean_line_from_file("res://android/build/build.gradle", BUILD_GRADLE_PLUGIN_LINE)
 			_clean_line_from_file("res://android/build/settings.gradle", SETTINGS_GRADLE_PLUGIN_LINE)
 			return
