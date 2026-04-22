@@ -230,26 +230,52 @@ class Firestore(private val plugin: FirebasePlugin) {
 
 		query.get()
 			.addOnSuccessListener { querySnapshot ->
-				val documents = mutableListOf<Dictionary>()
+				// Serialize as JSON string — Godot 4.6.1 JNI cannot convert typed
+				// Java arrays (Array<Dictionary>) nested inside a Dictionary value.
+				// Only top-level signal args are auto-converted; JSON avoids this.
+				val docsArray = org.json.JSONArray()
 				for (doc in querySnapshot.documents) {
-					val docDict = Dictionary()
-					docDict["docID"] = doc.id
-					docDict["data"] = snapshotToDictionary(doc)
-					documents.add(docDict)
+					val docObj = org.json.JSONObject()
+					docObj.put("_docID", doc.id)  // "_docID" matches desktop convention
+					doc.data?.forEach { (key, value) -> docObj.put(key, toJsonSafe(value)) }
+					docsArray.put(docObj)
 				}
 				val result = Dictionary()
 				result["status"] = true
-				result["documents"] = documents.toTypedArray()
-				Log.d(TAG, "Query completed successfully, ${documents.size} documents found")
+				result["collection"] = collection  // echoed so GDScript can correlate calls
+				result["documents_json"] = docsArray.toString()
+				Log.d(TAG, "Query completed: collection=$collection, count=${docsArray.length()}")
 				plugin.emitGodotSignal("firestore_query_task_completed", result)
 			}
 			.addOnFailureListener { e ->
 				Log.e(TAG, "Error querying documents:", e)
 				val result = Dictionary()
 				result["status"] = false
+				result["collection"] = collection
 				result["error"] = e.message ?: "Unknown error"
 				plugin.emitGodotSignal("firestore_query_task_completed", result)
 			}
+	}
+
+	/** Converts a Firestore field value to a JSON-safe type.
+	 *  Handles primitives, Map, List, and Timestamp. Unknown types fall back
+	 *  to toString() so no field is silently dropped. */
+	private fun toJsonSafe(value: Any?): Any? = when (value) {
+		null -> null
+		is String, is Boolean -> value
+		is Number -> value
+		is com.google.firebase.Timestamp -> value.seconds
+		is Map<*, *> -> {
+			val obj = org.json.JSONObject()
+			value.forEach { (k, v) -> if (k != null) obj.put(k.toString(), toJsonSafe(v)) }
+			obj
+		}
+		is List<*> -> {
+			val arr = org.json.JSONArray()
+			value.forEach { v -> arr.put(toJsonSafe(v)) }
+			arr
+		}
+		else -> value.toString()
 	}
 
 	fun listenToCollection(collection: String) {
