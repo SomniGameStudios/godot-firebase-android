@@ -55,7 +55,7 @@ func listen_to_document(documentPath: String) -> void:
 
 func query_documents(collection: String, filters: Array = [], order_by: String = "", order_descending: bool = false, limit_count: int = 0) -> void:
 	if _plugin_singleton:
-		_plugin_singleton.firestoreQueryDocuments(collection, filters, order_by, order_descending, limit_count)
+		_plugin_singleton.firestoreQueryDocuments(collection, JSON.stringify(filters), order_by, order_descending, limit_count)
 
 func stop_listening_to_document(documentPath: String) -> void:
 	if _plugin_singleton:
@@ -105,12 +105,12 @@ func server_timestamp() -> Dictionary:
 
 func array_union(elements: Array) -> Dictionary:
 	if _plugin_singleton:
-		return _plugin_singleton.firestoreArrayUnion(elements)
+		return _plugin_singleton.firestoreArrayUnion(JSON.stringify(elements))
 	return {}
 
 func array_remove(elements: Array) -> Dictionary:
 	if _plugin_singleton:
-		return _plugin_singleton.firestoreArrayRemove(elements)
+		return _plugin_singleton.firestoreArrayRemove(JSON.stringify(elements))
 	return {}
 
 func increment_by(value: float) -> Dictionary:

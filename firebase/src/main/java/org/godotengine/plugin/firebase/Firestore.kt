@@ -171,55 +171,48 @@ class Firestore(private val plugin: FirebasePlugin) {
 
 	fun queryDocuments(
 		collection: String,
-		filters: Array<Any?>,
+		filtersJson: String,
 		orderBy: String,
 		orderDescending: Boolean,
 		limitCount: Int
 	) {
 		var query: Query = firestore.collection(collection)
 
-		for (item in filters) {
-			if (item is Dictionary) {
-				val field = item["field"] as? String ?: continue
-				val op = item["op"] as? String ?: continue
-				val value = item["value"] ?: continue
+		val filters = try {
+			org.json.JSONArray(filtersJson)
+		} catch (e: org.json.JSONException) {
+			Log.e(TAG, "queryDocuments: invalid filters JSON (len=${filtersJson.length}, err=${e.message})")
+			plugin.emitGodotSignal(
+				"firestore_query_task_completed",
+				createResultDict(false, error = "Invalid filters JSON: ${e.message}")
+			)
+			return
+		}
 
-				query = when (op) {
-					"==" -> query.whereEqualTo(field, value)
-					"!=" -> query.whereNotEqualTo(field, value)
-					"<" -> query.whereLessThan(field, value)
-					"<=" -> query.whereLessThanOrEqualTo(field, value)
-					">" -> query.whereGreaterThan(field, value)
-					">=" -> query.whereGreaterThanOrEqualTo(field, value)
-					"array_contains" -> query.whereArrayContains(field, value)
-					"in" -> {
-						val list = when (value) {
-							is Array<*> -> value.toList()
-							is List<*> -> value
-							else -> listOf(value)
-						}
-						query.whereIn(field, list)
-					}
-					"not_in" -> {
-						val list = when (value) {
-							is Array<*> -> value.toList()
-							is List<*> -> value
-							else -> listOf(value)
-						}
-						query.whereNotIn(field, list)
-					}
-					"array_contains_any" -> {
-						val list = when (value) {
-							is Array<*> -> value.toList()
-							is List<*> -> value
-							else -> listOf(value)
-						}
-						query.whereArrayContainsAny(field, list)
-					}
-					else -> {
-						Log.w(TAG, "Unknown filter operator: $op")
-						query
-					}
+		for (i in 0 until filters.length()) {
+			val item = filters.optJSONObject(i) ?: continue
+			val field = item.optString("field")
+			if (field.isEmpty()) continue
+			val op = item.optString("op")
+			if (op.isEmpty()) continue
+			if (!item.has("value")) continue
+			val rawValue = item.get("value")
+			val value = unwrapJsonValue(rawValue) ?: continue
+
+			query = when (op) {
+				"==" -> query.whereEqualTo(field, value)
+				"!=" -> query.whereNotEqualTo(field, value)
+				"<" -> query.whereLessThan(field, value)
+				"<=" -> query.whereLessThanOrEqualTo(field, value)
+				">" -> query.whereGreaterThan(field, value)
+				">=" -> query.whereGreaterThanOrEqualTo(field, value)
+				"array_contains" -> query.whereArrayContains(field, value)
+				"in" -> query.whereIn(field, jsonValueToList(rawValue, value))
+				"not_in" -> query.whereNotIn(field, jsonValueToList(rawValue, value))
+				"array_contains_any" -> query.whereArrayContainsAny(field, jsonValueToList(rawValue, value))
+				else -> {
+					Log.w(TAG, "queryDocuments: unknown filter operator $op (field=$field)")
+					query
 				}
 			}
 		}
@@ -237,26 +230,52 @@ class Firestore(private val plugin: FirebasePlugin) {
 
 		query.get()
 			.addOnSuccessListener { querySnapshot ->
-				val documents = mutableListOf<Dictionary>()
+				// Serialize as JSON string — Godot 4.6.1 JNI cannot convert typed
+				// Java arrays (Array<Dictionary>) nested inside a Dictionary value.
+				// Only top-level signal args are auto-converted; JSON avoids this.
+				val docsArray = org.json.JSONArray()
 				for (doc in querySnapshot.documents) {
-					val docDict = Dictionary()
-					docDict["docID"] = doc.id
-					docDict["data"] = snapshotToDictionary(doc)
-					documents.add(docDict)
+					val docObj = org.json.JSONObject()
+					docObj.put("_docID", doc.id)  // "_docID" matches desktop convention
+					doc.data?.forEach { (key, value) -> docObj.put(key, toJsonSafe(value)) }
+					docsArray.put(docObj)
 				}
 				val result = Dictionary()
 				result["status"] = true
-				result["documents"] = documents.toTypedArray()
-				Log.d(TAG, "Query completed successfully, ${documents.size} documents found")
+				result["collection"] = collection  // echoed so GDScript can correlate calls
+				result["documents_json"] = docsArray.toString()
+				Log.d(TAG, "Query completed: collection=$collection, count=${docsArray.length()}")
 				plugin.emitGodotSignal("firestore_query_task_completed", result)
 			}
 			.addOnFailureListener { e ->
 				Log.e(TAG, "Error querying documents:", e)
 				val result = Dictionary()
 				result["status"] = false
+				result["collection"] = collection
 				result["error"] = e.message ?: "Unknown error"
 				plugin.emitGodotSignal("firestore_query_task_completed", result)
 			}
+	}
+
+	/** Converts a Firestore field value to a JSON-safe type.
+	 *  Handles primitives, Map, List, and Timestamp. Unknown types fall back
+	 *  to toString() so no field is silently dropped. */
+	private fun toJsonSafe(value: Any?): Any? = when (value) {
+		null -> null
+		is String, is Boolean -> value
+		is Number -> value
+		is com.google.firebase.Timestamp -> value.seconds
+		is Map<*, *> -> {
+			val obj = org.json.JSONObject()
+			value.forEach { (k, v) -> if (k != null) obj.put(k.toString(), toJsonSafe(v)) }
+			obj
+		}
+		is List<*> -> {
+			val arr = org.json.JSONArray()
+			value.forEach { v -> arr.put(toJsonSafe(v)) }
+			arr
+		}
+		else -> value.toString()
 	}
 
 	fun listenToCollection(collection: String) {
@@ -365,17 +384,17 @@ class Firestore(private val plugin: FirebasePlugin) {
 		return d
 	}
 
-	fun arrayUnion(elements: Array<Any?>): Dictionary {
+	fun arrayUnion(elementsJson: String): Dictionary {
 		val d = Dictionary()
 		d["__fieldValue"] = "arrayUnion"
-		d["elements"] = elements
+		d["elementsJson"] = elementsJson
 		return d
 	}
 
-	fun arrayRemove(elements: Array<Any?>): Dictionary {
+	fun arrayRemove(elementsJson: String): Dictionary {
 		val d = Dictionary()
 		d["__fieldValue"] = "arrayRemove"
-		d["elements"] = elements
+		d["elementsJson"] = elementsJson
 		return d
 	}
 
@@ -390,6 +409,43 @@ class Firestore(private val plugin: FirebasePlugin) {
 		val d = Dictionary()
 		d["__fieldValue"] = "deleteField"
 		return d
+	}
+
+	/** Unwrap a value read from org.json into a Firestore-friendly native type.
+	 *  org.json returns JSONObject/JSONArray for nested structures; recurse.
+	 *  Primitives pass through. JSONObject.NULL → null. */
+	private fun unwrapJsonValue(raw: Any?): Any? = when (raw) {
+		null, org.json.JSONObject.NULL -> null
+		is org.json.JSONArray -> List(raw.length()) { unwrapJsonValue(raw.opt(it)) }
+		is org.json.JSONObject -> {
+			val m = mutableMapOf<String, Any?>()
+			val keys = raw.keys()
+			while (keys.hasNext()) {
+				val k = keys.next()
+				m[k] = unwrapJsonValue(raw.opt(k))
+			}
+			m
+		}
+		else -> raw  // String, Boolean, Int, Long, Double
+	}
+
+	/** Coerce a filter's `value` field into a List for in/not_in/array_contains_any.
+	 *  Accepts a JSON array; falls back to single-element list for scalar values. */
+	@Suppress("UNCHECKED_CAST")
+	private fun jsonValueToList(raw: Any?, unwrapped: Any): List<Any> = when (unwrapped) {
+		is List<*> -> (unwrapped as List<Any?>).filterNotNull()
+		else -> listOf(unwrapped)
+	}
+
+	private fun parseJsonElementsArray(json: String): List<Any> {
+		if (json.isEmpty()) return emptyList()
+		return try {
+			val arr = org.json.JSONArray(json)
+			List(arr.length()) { i -> unwrapJsonValue(arr.opt(i)) }.filterNotNull()
+		} catch (e: org.json.JSONException) {
+			Log.e(TAG, "arrayUnion/Remove: invalid elements JSON (len=${json.length}, err=${e.message})")
+			emptyList()
+		}
 	}
 
 	private fun convertDataForFirestore(map: Map<*, *>): Map<String, Any> {
@@ -410,12 +466,14 @@ class Firestore(private val plugin: FirebasePlugin) {
 				when (fieldValueType) {
 					"serverTimestamp" -> FieldValue.serverTimestamp()
 					"arrayUnion" -> {
-						val elements = (value["elements"] as? Array<*>)?.filterNotNull()?.toTypedArray() ?: emptyArray()
-						FieldValue.arrayUnion(*elements)
+						val json = value["elementsJson"] as? String ?: ""
+						val elements = parseJsonElementsArray(json)
+						FieldValue.arrayUnion(*elements.toTypedArray())
 					}
 					"arrayRemove" -> {
-						val elements = (value["elements"] as? Array<*>)?.filterNotNull()?.toTypedArray() ?: emptyArray()
-						FieldValue.arrayRemove(*elements)
+						val json = value["elementsJson"] as? String ?: ""
+						val elements = parseJsonElementsArray(json)
+						FieldValue.arrayRemove(*elements.toTypedArray())
 					}
 					"increment" -> {
 						when (val v = value["value"]) {
