@@ -1,5 +1,3 @@
-extends Node
-
 signal auth_success(current_user_data: Dictionary)
 signal auth_failure(error_message: String)
 signal link_with_google_success(current_user_data: Dictionary)
@@ -38,8 +36,8 @@ func sign_in_anonymously() -> void:
 		_plugin_singleton.signInAnonymously()
 
 func create_user_with_email_password(email: String, password: String) -> void:
-		if _plugin_singleton:
-			_plugin_singleton.createUserWithEmailPassword(email, password)
+	if _plugin_singleton:
+		_plugin_singleton.createUserWithEmailPassword(email, password)
 
 func sign_in_with_email_password(email: String, password: String) -> void:
 	if _plugin_singleton:

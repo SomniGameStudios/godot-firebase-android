@@ -18,7 +18,8 @@ const DEPENDENCIES := [
 	"com.google.firebase:firebase-database:21.0.0",
 	"com.google.firebase:firebase-storage:21.0.1",
 	"com.google.firebase:firebase-analytics:22.4.0",
-	"com.google.firebase:firebase-config:22.0.1"
+	"com.google.firebase:firebase-config:22.0.1",
+	"com.google.firebase:firebase-messaging:23.0.0"
 ]
 
 func _enter_tree():
