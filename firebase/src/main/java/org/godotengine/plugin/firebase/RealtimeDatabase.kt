@@ -42,7 +42,7 @@ class RealtimeDatabase(private val plugin: FirebasePlugin) {
 	}
 
 	fun setValue(path: String, data: Dictionary) {
-		val map = data.toMap()
+		val map = convertDataForRTDB(data.toMap())
 		db.child(path).setValue(map)
 			.addOnSuccessListener {
 				Log.d(TAG, "Data set successfully at $path")
@@ -67,7 +67,7 @@ class RealtimeDatabase(private val plugin: FirebasePlugin) {
 	}
 
 	fun updateValue(path: String, data: Dictionary) {
-		val map = data.toMap()
+		val map = convertDataForRTDB(data.toMap())
 		db.child(path).updateChildren(map)
 			.addOnSuccessListener {
 				Log.d(TAG, "Data at $path updated successfully")
@@ -114,6 +114,46 @@ class RealtimeDatabase(private val plugin: FirebasePlugin) {
 			ref.removeEventListener(it)
 			listeners.remove(path)
 			Log.d(TAG, "Stopped listening at $path")
+		}
+	}
+
+	fun increment(value: Int): Dictionary {
+		val dict = Dictionary()
+		dict["__type"] = "increment"
+		dict["value"] = value
+		return dict
+	}
+
+	private fun convertDataForRTDB(map: Map<*, *>): Map<String, Any> {
+		val result = mutableMapOf<String, Any>()
+		map.forEach { (k, v) ->
+			val key = k?.toString() ?: return@forEach
+			val converted = convertValueForRTDB(v)
+			if (converted != null) result[key] = converted
+		}
+		return result
+	}
+
+	private fun convertValueForRTDB(value: Any?): Any? {
+		return when (value) {
+			null -> null
+			is Dictionary -> {
+				val type = value["__type"] as? String
+				when (type) {
+					"increment" -> {
+						val v = value["value"]
+						if (v is Number) {
+							com.google.firebase.database.ServerValue.increment(v.toLong())
+						} else {
+							com.google.firebase.database.ServerValue.increment(0L)
+						}
+					}
+					else -> convertDataForRTDB(value.toMap())
+				}
+			}
+			is Map<*, *> -> convertDataForRTDB(value)
+			is List<*> -> value.map { convertValueForRTDB(it) }
+			else -> value
 		}
 	}
 
