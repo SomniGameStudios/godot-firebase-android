@@ -40,6 +40,13 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 		messaging.onMainResume()
 	}
 
+	override fun onMainRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?) {
+		super.onMainRequestPermissionsResult(requestCode, permissions, grantResults)
+		if (requestCode == 1001) {
+			messaging.onRequestPermissionsResult(requestCode, permissions, grantResults)
+		}
+	}
+
 	override fun getPluginSignals(): MutableSet<SignalInfo> {
 		val signals: MutableSet<SignalInfo> = mutableSetOf()
 		signals.addAll(auth.authSignals())

@@ -166,6 +166,12 @@ class Messaging(private val plugin: FirebasePlugin) {
         }
     }
 
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?) {
+        if (requestCode == 1001) {
+            plugin.emitGodotSignal("messaging_permission_result", hasPermission())
+        }
+    }
+
     fun hasPermission(): Boolean {
         if (Build.VERSION.SDK_INT >= 33) {
             val act = activity ?: return false
@@ -187,6 +193,7 @@ class Messaging(private val plugin: FirebasePlugin) {
             if (Build.VERSION.SDK_INT >= 33) {
                 if (!hasPermission()) {
                     ActivityCompat.requestPermissions(currentActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+                    return@runOnUiThread
                 }
             }
             plugin.emitGodotSignal("messaging_permission_result", hasPermission())
