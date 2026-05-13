@@ -15,6 +15,7 @@ import org.godotengine.godot.plugin.SignalInfo
 class Messaging(private val plugin: FirebasePlugin) {
     companion object {
         private const val TAG = "GodotFirebaseMessaging"
+        @Volatile
         var instance: Messaging? = null
     }
 
