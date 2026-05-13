@@ -200,6 +200,10 @@ class Messaging(private val plugin: FirebasePlugin) {
         }
     }
 
+    fun setAutoInitEnabled(enabled: Boolean) {
+        FirebaseMessaging.getInstance().isAutoInitEnabled = enabled
+    }
+
     fun getPermissionStatus(): String {
         return if (hasPermission()) "authorized" else "denied"
     }

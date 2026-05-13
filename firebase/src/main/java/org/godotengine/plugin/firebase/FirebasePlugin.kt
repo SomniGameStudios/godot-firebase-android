@@ -364,4 +364,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun messagingRequestPermission(provisional: Boolean = false) = messaging.requestPermission()
+
+	@UsedByGodot
+	fun messagingSetAutoInitEnabled(enabled: Boolean) = messaging.setAutoInitEnabled(enabled)
 }
