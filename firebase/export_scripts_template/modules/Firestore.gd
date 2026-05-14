@@ -1,5 +1,3 @@
-extends Node
-
 signal write_task_completed(result: Dictionary)
 signal get_task_completed(result: Dictionary)
 signal update_task_completed(result: Dictionary)
@@ -42,8 +40,8 @@ func get_documents_in_collection(collection: String) -> void:
 		_plugin_singleton.firestoreGetDocumentsInCollection(collection)
 
 func update_document(collection: String, documentId: String, data: Dictionary) -> void:
-		if _plugin_singleton:
-			_plugin_singleton.firestoreUpdateDocument(collection, documentId, data)
+	if _plugin_singleton:
+		_plugin_singleton.firestoreUpdateDocument(collection, documentId, data)
 
 func delete_document(collection: String, documentId: String) -> void:
 	if _plugin_singleton:

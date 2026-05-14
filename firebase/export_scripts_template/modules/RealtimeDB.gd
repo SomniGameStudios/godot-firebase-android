@@ -1,5 +1,3 @@
-extends Node
-
 signal write_task_completed(result: Dictionary)
 signal get_task_completed(result: Dictionary)
 signal update_task_completed(result: Dictionary)
@@ -26,8 +24,8 @@ func get_value(path: String) -> void:
 		_plugin_singleton.rtdbGetValue(path)
 
 func update_value(path: String, data: Dictionary) -> void:
-		if _plugin_singleton:
-			_plugin_singleton.rtdbUpdateValue(path, data)
+	if _plugin_singleton:
+		_plugin_singleton.rtdbUpdateValue(path, data)
 
 func delete_value(path: String) -> void:
 	if _plugin_singleton:
