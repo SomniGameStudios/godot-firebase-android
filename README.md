@@ -36,11 +36,14 @@ It supports Godot 4.2+
 - Visit [Firebase Console](https://console.firebase.google.com)
 - Create a Firebase project and register your Android app.
 - Enable required services (e.g., Authentication, Firestore).
-- Download the `google-services.json` file and place it in:
+- Download the `google-services.json` file and place it in the addon folder:
 
 	```
-	android/build/google-services.json
+	addons/GodotFirebaseAndroid/google-services.json
 	```
+
+	The plugin automatically copies it to `android/build/` at export time.
+	This is the recommended location because Godot regenerates the `android/build/` directory on each export, which would delete the file.
 
 ---
 

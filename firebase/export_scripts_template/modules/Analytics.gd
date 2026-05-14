@@ -1,5 +1,3 @@
-extends Node
-
 signal app_instance_id_result(id: String)
 
 var _plugin_singleton: Object

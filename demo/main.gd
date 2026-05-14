@@ -6,6 +6,7 @@ var realtimeDB = load("res://scenes/realtime_db.tscn")
 var storage = load("res://scenes/storage.tscn")
 var remote_config = load("res://scenes/remote_config.tscn")
 var analytics = load("res://scenes/analytics.tscn")
+var messaging = load("res://scenes/messaging.tscn")
 
 func _on_auth_pressed() -> void:
 	get_tree().change_scene_to_packed(auth)
@@ -29,3 +30,6 @@ func _on_remote_config_pressed() -> void:
 
 func _on_analytics_pressed() -> void:
 	get_tree().change_scene_to_packed(analytics)
+
+func _on_messaging_pressed() -> void:
+	get_tree().change_scene_to_packed(messaging)

@@ -8,6 +8,7 @@ import org.godotengine.godot.Godot
 import org.godotengine.godot.plugin.GodotPlugin
 import org.godotengine.godot.plugin.SignalInfo
 import org.godotengine.godot.plugin.UsedByGodot
+import com.google.firebase.FirebaseApp
 
 class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	override fun getPluginName(): String = "GodotFirebaseAndroid"
@@ -18,17 +19,32 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	private val realtimeDatabase = RealtimeDatabase(this)
 	private val analytics = Analytics(this)
 	private val remoteConfig = RemoteConfig(this)
+	private val messaging = Messaging(this)
 
 	override fun onMainCreate(activity: Activity?): View? {
 		activity?.let {
+			FirebaseApp.initializeApp(it)
 			auth.init(it)
 			analytics.init(it)
+			messaging.init(it)
 		}
 		return super.onMainCreate(activity)
 	}
 
 	override fun onMainActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 		auth.handleActivityResult(requestCode, resultCode, data)
+	}
+
+	override fun onMainResume() {
+		super.onMainResume()
+		messaging.onMainResume()
+	}
+
+	override fun onMainRequestPermissionsResult(requestCode: Int, permissions: Array<out String>?, grantResults: IntArray?) {
+		super.onMainRequestPermissionsResult(requestCode, permissions, grantResults)
+		if (requestCode == 1001) {
+			messaging.onRequestPermissionsResult(requestCode, permissions, grantResults)
+		}
 	}
 
 	override fun getPluginSignals(): MutableSet<SignalInfo> {
@@ -39,7 +55,12 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 		signals.addAll(storage.storageSignals())
 		signals.addAll(analytics.analyticsSignals())
 		signals.addAll(remoteConfig.remoteConfigSignals())
+		signals.addAll(messaging.messagingSignals())
 		return signals
+	}
+
+	fun emitGodotSignal(signalName: String) {
+		emitSignal(signalName)
 	}
 
 	fun emitGodotSignal(signalName: String, arg1: Any?, arg2: Any? = null) {
@@ -136,7 +157,7 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	fun firestoreGetDocumentsInCollection(collection: String) = firestore.getDocumentsInCollection(collection)
 
 	@UsedByGodot
-	fun firestoreQueryDocuments(collection: String, filters: Array<Any?>, orderBy: String, orderDescending: Boolean, limitCount: Int) = firestore.queryDocuments(collection, filters, orderBy, orderDescending, limitCount)
+	fun firestoreQueryDocuments(collection: String, filtersJson: String, orderBy: String, orderDescending: Boolean, limitCount: Int) = firestore.queryDocuments(collection, filtersJson, orderBy, orderDescending, limitCount)
 
 	@UsedByGodot
 	fun firestoreListenToDocument(documentPath: String) = firestore.listenToDocument(documentPath)
@@ -175,10 +196,10 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	fun firestoreServerTimestamp() = firestore.serverTimestamp()
 
 	@UsedByGodot
-	fun firestoreArrayUnion(elements: Array<Any?>) = firestore.arrayUnion(elements)
+	fun firestoreArrayUnion(elementsJson: String) = firestore.arrayUnion(elementsJson)
 
 	@UsedByGodot
-	fun firestoreArrayRemove(elements: Array<Any?>) = firestore.arrayRemove(elements)
+	fun firestoreArrayRemove(elementsJson: String) = firestore.arrayRemove(elementsJson)
 
 	@UsedByGodot
 	fun firestoreIncrementBy(value: Double) = firestore.incrementBy(value)
@@ -321,4 +342,32 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 
 	@UsedByGodot
 	fun remoteConfigStopListeningForUpdates() = remoteConfig.stopListeningForUpdates()
+
+	/**
+	 * Messaging
+	 */
+
+	@UsedByGodot
+	fun messagingGetToken() = messaging.getToken()
+
+	@UsedByGodot
+	fun messagingDeleteToken() = messaging.deleteToken()
+
+	@UsedByGodot
+	fun messagingSubscribeToTopic(topic: String) = messaging.subscribeToTopic(topic)
+
+	@UsedByGodot
+	fun messagingUnsubscribeFromTopic(topic: String) = messaging.unsubscribeFromTopic(topic)
+
+	@UsedByGodot
+	fun messagingHasPermission() = messaging.hasPermission()
+
+	@UsedByGodot
+	fun messagingGetPermissionStatus() = messaging.getPermissionStatus()
+
+	@UsedByGodot
+	fun messagingRequestPermission(provisional: Boolean = false) = messaging.requestPermission()
+
+	@UsedByGodot
+	fun messagingSetAutoInitEnabled(enabled: Boolean) = messaging.setAutoInitEnabled(enabled)
 }

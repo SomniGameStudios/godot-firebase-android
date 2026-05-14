@@ -1,5 +1,3 @@
-extends Node
-
 signal fetch_completed(result: Dictionary)
 signal activate_completed(result: Dictionary)
 signal config_updated(updated_keys: Array)

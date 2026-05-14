@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation("org.godotengine:godot:4.6.1.stable")
+    implementation("org.godotengine:godot:4.6.2.stable")
     implementation("com.google.firebase:firebase-auth:23.2.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
     implementation("com.google.firebase:firebase-firestore:25.1.4")
@@ -44,6 +44,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage:21.0.1")
     implementation("com.google.firebase:firebase-analytics:22.4.0")
     implementation("com.google.firebase:firebase-config:22.0.1")
+    implementation("com.google.firebase:firebase-messaging:24.1.1")
 }
 
 // BUILD TASKS DEFINITION
