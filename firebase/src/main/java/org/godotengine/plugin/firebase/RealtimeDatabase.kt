@@ -92,6 +92,7 @@ class RealtimeDatabase(private val plugin: FirebasePlugin) {
 	}
 
 	fun listenToPath(path: String) {
+		stopListening(path)
 		val ref = db.child(path)
 		val listener = object : ValueEventListener {
 			override fun onDataChange(snapshot: DataSnapshot) {
