@@ -38,3 +38,8 @@ func listen_to_path(path: String) -> void:
 func stop_listening(path: String) -> void:
 	if _plugin_singleton:
 		_plugin_singleton.rtdbStopListening(path)
+
+func increment(value: int) -> Dictionary:
+	if _plugin_singleton:
+		return _plugin_singleton.rtdbIncrement(value)
+	return {}

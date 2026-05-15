@@ -251,6 +251,9 @@ class FirebasePlugin(godot: Godot) : GodotPlugin(godot) {
 	@UsedByGodot
 	fun rtdbStopListening(path: String) = realtimeDatabase.stopListening(path)
 
+	@UsedByGodot
+	fun rtdbIncrement(value: Int) = realtimeDatabase.increment(value)
+
 	/**
 	 * Analytics
 	 */
